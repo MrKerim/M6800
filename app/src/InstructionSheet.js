@@ -1997,8 +1997,15 @@ BCS LABEL - Branch if carry set
     H | I | N | Z | V | C
     * | * | * | * | * | *
 */
+
+function isLabel(label) {
+	const regex = /^[A-Za-z][A-Za-z0-9_]*$/;
+	return regex.test(label);
+}
+
 function bcs(keyword, value, modifier) {
 	if (modifier) return null;
+	if (!isLabel(value)) return null;
 	return [0x25, { label: value, errorLine: null }];
 }
 instructionSheetScript.set("bcs", bcs);
@@ -2014,6 +2021,7 @@ BCC LABEL - Branch if carry clear
 */
 function bcc(keyword, value, modifier) {
 	if (modifier) return null;
+	if (!isLabel(value)) return null;
 	return [0x24, { label: value, errorLine: null }];
 }
 instructionSheetScript.set("bcc", bcc);
@@ -2029,6 +2037,7 @@ BMI LABEL - Branch if minus
 */
 function bmi(keyword, value, modifier) {
 	if (modifier) return null;
+	if (!isLabel(value)) return null;
 	return [0x2b, { label: value, errorLine: null }];
 }
 instructionSheetScript.set("bmi", bmi);
@@ -2044,6 +2053,7 @@ BPL LABEL - Branch if plus
 */
 function bpl(keyword, value, modifier) {
 	if (modifier) return null;
+	if (!isLabel(value)) return null;
 	return [0x2a, { label: value, errorLine: null }];
 }
 instructionSheetScript.set("bpl", bpl);
@@ -2059,6 +2069,7 @@ BVS LABEL - Branch if overflow set
 */
 function bvs(keyword, value, modifier) {
 	if (modifier) return null;
+	if (!isLabel(value)) return null;
 	return [0x29, { label: value, errorLine: null }];
 }
 instructionSheetScript.set("bvs", bvs);
@@ -2074,6 +2085,7 @@ BVC LABEL - Branch if overflow clear
 */
 function bvc(keyword, value, modifier) {
 	if (modifier) return null;
+	if (!isLabel(value)) return null;
 	return [0x28, { label: value, errorLine: null }];
 }
 instructionSheetScript.set("bvc", bvc);
@@ -2089,6 +2101,7 @@ BEQ LABEL - Branch if equal
 */
 function beq(keyword, value, modifier) {
 	if (modifier) return null;
+	if (!isLabel(value)) return null;
 	return [0x27, { label: value, errorLine: null }];
 }
 instructionSheetScript.set("beq", beq);
@@ -2104,6 +2117,7 @@ BNE LABEL - Branch if not equal
 */
 function bne(keyword, value, modifier) {
 	if (modifier) return null;
+	if (!isLabel(value)) return null;
 	return [0x26, { label: value, errorLine: null }];
 }
 instructionSheetScript.set("bne", bne);
@@ -2119,6 +2133,7 @@ BLT LABEL - N ^ V = 1
 */
 function blt(keyword, value, modifier) {
 	if (modifier) return null;
+	if (!isLabel(value)) return null;
 	return [0x2d, { label: value, errorLine: null }];
 }
 instructionSheetScript.set("blt", blt);
@@ -2134,6 +2149,7 @@ BLE LABEL - Z + (N ^ V) = 1
 */
 function ble(keyword, value, modifier) {
 	if (modifier) return null;
+	if (!isLabel(value)) return null;
 	return [0x2f, { label: value, errorLine: null }];
 }
 instructionSheetScript.set("ble", ble);
@@ -2149,6 +2165,7 @@ BGE LABEL - N ^ V = 0
 */
 function bge(keyword, value, modifier) {
 	if (modifier) return null;
+	if (!isLabel(value)) return null;
 	return [0x2c, { label: value, errorLine: null }];
 }
 instructionSheetScript.set("bge", bge);
@@ -2164,6 +2181,7 @@ BGT LABEL - Z + (N ^ V) = 0
 */
 function bgt(keyword, value, modifier) {
 	if (modifier) return null;
+	if (!isLabel(value)) return null;
 	return [0x2e, { label: value, errorLine: null }];
 }
 instructionSheetScript.set("bgt", bgt);
@@ -2179,6 +2197,7 @@ BLS LABEL - C + Z = 1
 */
 function bls(keyword, value, modifier) {
 	if (modifier) return null;
+	if (!isLabel(value)) return null;
 	return [0x23, { label: value, errorLine: null }];
 }
 instructionSheetScript.set("bls", bls);
@@ -2194,6 +2213,7 @@ BHI LABEL - C + Z = 0
 */
 function bhi(keyword, value, modifier) {
 	if (modifier) return null;
+	if (!isLabel(value)) return null;
 	return [0x22, { label: value, errorLine: null }];
 }
 instructionSheetScript.set("bhi", bhi);
@@ -2209,6 +2229,7 @@ BRA LABEL - Branch always
 */
 function bra(keyword, value, modifier) {
 	if (modifier) return null;
+	if (!isLabel(value)) return null;
 	return [0x20, { label: value, errorLine: null }];
 }
 instructionSheetScript.set("bra", bra);
@@ -2224,6 +2245,7 @@ BSR LABEL - Branch to subroutine
 */
 function bsr(keyword, value, modifier) {
 	if (modifier) return null;
+	if (!isLabel(value)) return null;
 	return [0x8d, { label: value, errorLine: null }];
 }
 instructionSheetScript.set("bsr", bsr);

@@ -135,7 +135,8 @@ function App() {
 						return;
 					}
 					if (relativeAddress < 0) tempMemory[PCindex] = 0xff + relativeAddress;
-					if (relativeAddress > 0) tempMemory[PCindex] = relativeAddress - 1;
+					else if (relativeAddress > 0)
+						tempMemory[PCindex] = relativeAddress - 1;
 					else tempMemory[PCindex] = relativeAddress;
 				} else {
 					const errorLine = instruction.errorLine;
