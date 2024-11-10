@@ -31,7 +31,7 @@ function org(label, directive, operand, modifier, pC, tempMemory, labels) {
 	if (operand[0] === "$") {
 		//hexadecimal
 		if (isNaN(parseInt(operand.slice(1), 16))) return null;
-		else if (parseInt(operand.slice(1), 16) > 0xff) return null;
+		else if (parseInt(operand.slice(1), 16) > 0xffff) return null;
 		else
 			return {
 				pc: parseInt(operand.slice(1), 16),
@@ -42,7 +42,7 @@ function org(label, directive, operand, modifier, pC, tempMemory, labels) {
 	if (operand[0] === "%") {
 		//binary
 		if (isNaN(parseInt(operand.slice(1), 2))) return null;
-		else if (parseInt(operand.slice(1), 2) > 0xff) return null;
+		else if (parseInt(operand.slice(1), 2) > 0xffff) return null;
 		else
 			return {
 				pc: parseInt(operand.slice(1), 2),
@@ -52,7 +52,7 @@ function org(label, directive, operand, modifier, pC, tempMemory, labels) {
 	}
 	//decimal
 	if (isNaN(parseInt(operand))) return null;
-	else if (parseInt(operand) > 0xff) return null;
+	else if (parseInt(operand) > 0xffff) return null;
 	else return { pc: parseInt(operand), tempMemory: tempMemory, labels: labels };
 }
 assemblerDirectiveScript.set(".org", org);
