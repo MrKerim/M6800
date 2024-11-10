@@ -5,6 +5,72 @@ import {
 } from "./InstructionSheet";
 import MonacoEditor from "@monaco-editor/react";
 
+const keywords = Array.from(instructionSheetScript.keys());
+const directives = Array.from(assemblerDirectiveScript.keys());
+
+function buildCaseInsensitiveRegex(keyword) {
+	if (keyword[0] === ".") {
+		return (
+			"\\." +
+			keyword
+				.slice(1)
+				.split("")
+				.map((char) => `[${char.toLowerCase()}${char.toUpperCase()}]`)
+				.join("")
+		);
+	}
+	return keyword
+		.split("")
+		.map((char) => `[${char.toLowerCase()}${char.toUpperCase()}]`)
+		.join("");
+}
+const keywordPattern = new RegExp(
+	`\\b(${keywords.map(buildCaseInsensitiveRegex).join("|")})\\b`
+);
+
+const directivePattern = new RegExp(
+	`\\s+(${directives.map(buildCaseInsensitiveRegex).join("|")})\\b`
+);
+//const directivePattern = /\s+(\.[oO][rR][gG]|\.equ)\b/;
+
+const registerCustomLanguage = (monaco) => {
+	monaco.languages.register({ id: "customAssembly" });
+
+	monaco.languages.setMonarchTokensProvider("customAssembly", {
+		tokenizer: {
+			root: [
+				[/#[\$%]?[a-zA-Z0-9]+/, { token: "number" }],
+				[/^([a-zA-Z_][a-zA-Z0-9_]*)/, { token: "label" }],
+				[keywordPattern, "keyword"],
+				[directivePattern, { token: "directive" }],
+				[/".*?"/, { token: "string" }],
+				[/(;.*$)/, "comment"],
+				[/\s+/, ""],
+				[/./, "text"],
+			],
+		},
+	});
+
+	// Define the custom theme
+	monaco.editor.defineTheme("customTheme", {
+		base: "vs-dark",
+		inherit: true,
+		rules: [
+			{ token: "label", foreground: "#569cd6" },
+			{ token: "keyword", foreground: "#a573a2" },
+			{ token: "directive", foreground: "#9b715e" },
+			{ token: "string", foreground: "#dcdcaa" },
+			{ token: "comment", foreground: "#6a9955" },
+			{ token: "number", foreground: "#b5cea8" },
+		],
+		colors: {
+			"editorLineNumber.activeForeground": "#FFFFFF",
+			"editorGutter.background": "#212630",
+			"editor.background": "#212630",
+		},
+	});
+};
+
 const CodeEditor = ({
 	setRawCode,
 	errorOnLine,
@@ -14,8 +80,6 @@ const CodeEditor = ({
 	build,
 	setBuild,
 }) => {
-	const keywords = Array.from(instructionSheetScript.keys());
-	const directives = Array.from(assemblerDirectiveScript.keys());
 	const editorRef = useRef(null); // Create a ref to store the editor instance
 	const [editorContent, setEditorContent] = useState(
 		"; Start typing your assembly code here..."
@@ -110,69 +174,6 @@ const CodeEditor = ({
 	}, [errorOnLine]);
 
 	// Build a case-insensitive regex for keywords
-
-	function buildCaseInsensitiveRegex(keyword) {
-		if (keyword[0] === ".") {
-			return (
-				"\\." +
-				keyword
-					.slice(1)
-					.split("")
-					.map((char) => `[${char.toLowerCase()}${char.toUpperCase()}]`)
-					.join("")
-			);
-		}
-		return keyword
-			.split("")
-			.map((char) => `[${char.toLowerCase()}${char.toUpperCase()}]`)
-			.join("");
-	}
-	const keywordPattern = new RegExp(
-		`\\b(${keywords.map(buildCaseInsensitiveRegex).join("|")})\\b`
-	);
-
-	const directivePattern = new RegExp(
-		`\\s+(${directives.map(buildCaseInsensitiveRegex).join("|")})\\b`
-	);
-	//const directivePattern = /\s+(\.[oO][rR][gG]|\.equ)\b/;
-
-	const registerCustomLanguage = (monaco) => {
-		monaco.languages.register({ id: "customAssembly" });
-
-		monaco.languages.setMonarchTokensProvider("customAssembly", {
-			tokenizer: {
-				root: [
-					[/#[\$%]?[a-zA-Z0-9]+/, { token: "number" }],
-					[/^([a-zA-Z_][a-zA-Z0-9_]*)/, { token: "label" }],
-					[keywordPattern, "keyword"],
-					[directivePattern, { token: "directive" }],
-					[/".*?"/, { token: "string" }],
-					[/(;.*$)/, "comment"],
-					[/\s+/, ""],
-					[/./, "text"],
-				],
-			},
-		});
-
-		// Define the custom theme
-		monaco.editor.defineTheme("customTheme", {
-			base: "vs-dark",
-			inherit: true,
-			rules: [
-				{ token: "label", foreground: "#569cd6" },
-				{ token: "keyword", foreground: "#a573a2" },
-				{ token: "directive", foreground: "#9b715e" },
-				{ token: "string", foreground: "#dcdcaa" },
-				{ token: "comment", foreground: "#6a9955" },
-				{ token: "number", foreground: "#b5cea8" },
-			],
-			colors: {
-				"editorLineNumber.activeForeground": "#FFFFFF",
-				"editorGutter.background": "#212630",
-				"editor.background": "#212630",
-			},
-		});
-	};
 
 	// Handle editor content change
 	const handleEditorChange = (value) => {
