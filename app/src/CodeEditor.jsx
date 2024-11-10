@@ -23,6 +23,14 @@ const CodeEditor = ({
 		lineNumbers: "on",
 	});
 
+	const [buildingTimeout, setBuildingTimeout] = useState(false);
+
+	useEffect(() => {
+		if (buildingTimeout) {
+			setBuildingTimeout(false);
+		}
+	}, [errorOnLine, buildSuccess]);
+
 	useEffect(() => {
 		const handleResize = () => {
 			if (window.innerWidth >= 1024) {
@@ -186,35 +194,54 @@ const CodeEditor = ({
 				/>
 				<div className="flex ml-4 mt-4 gap-4">
 					{!buildSuccess ? (
-						<button
-							className="bg-[#f0a55a]  lg:font-light items-center text-lg p-2   text-black  rounded-md flex gap-2   "
-							onClick={() => {
-								console.log("build");
-								setBuild(!build);
-								setRawCode(editorContent);
-							}}
-						>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								fill="none"
-								viewBox="0 0 24 24"
-								strokeWidth={1.2}
-								stroke="currentColor"
-								className="size-5"
-							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									d="M21.75 6.75a4.5 4.5 0 0 1-4.884 4.484c-1.076-.091-2.264.071-2.95.904l-7.152 8.684a2.548 2.548 0 1 1-3.586-3.586l8.684-7.152c.833-.686.995-1.874.904-2.95a4.5 4.5 0 0 1 6.336-4.486l-3.276 3.276a3.004 3.004 0 0 0 2.25 2.25l3.276-3.276c.256.565.398 1.192.398 1.852Z"
-								/>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									d="M4.867 19.125h.008v.008h-.008v-.008Z"
-								/>
-							</svg>
-							BUILD
-						</button>
+						<>
+							{!buildingTimeout ? (
+								<button
+									className="bg-[#f0a55a]  lg:font-light items-center text-lg p-2   text-black  rounded-md flex gap-2   "
+									onClick={() => {
+										console.log("build");
+
+										setBuild(!build);
+										setBuildingTimeout(true);
+										//independent of the result either errorOnLine or buildSuccess will be changed
+										setRawCode(editorContent);
+									}}
+								>
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										fill="none"
+										viewBox="0 0 24 24"
+										strokeWidth={1.2}
+										stroke="currentColor"
+										className="size-5"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											d="M21.75 6.75a4.5 4.5 0 0 1-4.884 4.484c-1.076-.091-2.264.071-2.95.904l-7.152 8.684a2.548 2.548 0 1 1-3.586-3.586l8.684-7.152c.833-.686.995-1.874.904-2.95a4.5 4.5 0 0 1 6.336-4.486l-3.276 3.276a3.004 3.004 0 0 0 2.25 2.25l3.276-3.276c.256.565.398 1.192.398 1.852Z"
+										/>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											d="M4.867 19.125h.008v.008h-.008v-.008Z"
+										/>
+									</svg>
+									BUILD
+								</button>
+							) : (
+								<button className="bg-[#d1bba5] w-24 h-10  lg:font-light items-center justify-center text-xl p-2   text-black  rounded-md flex gap-2   animate-pulse">
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										width="16"
+										height="16"
+										fill="currentColor"
+										viewBox="0 0 16 16"
+									>
+										<path d="M2 14.5a.5.5 0 0 0 .5.5h11a.5.5 0 1 0 0-1h-1v-1a4.5 4.5 0 0 0-2.557-4.06c-.29-.139-.443-.377-.443-.59v-.7c0-.213.154-.451.443-.59A4.5 4.5 0 0 0 12.5 3V2h1a.5.5 0 0 0 0-1h-11a.5.5 0 0 0 0 1h1v1a4.5 4.5 0 0 0 2.557 4.06c.29.139.443.377.443.59v.7c0 .213-.154.451-.443.59A4.5 4.5 0 0 0 3.5 13v1h-1a.5.5 0 0 0-.5.5m2.5-.5v-1a3.5 3.5 0 0 1 1.989-3.158c.533-.256 1.011-.79 1.011-1.491v-.702s.18.101.5.101.5-.1.5-.1v.7c0 .701.478 1.236 1.011 1.492A3.5 3.5 0 0 1 11.5 13v1z" />
+									</svg>
+								</button>
+							)}
+						</>
 					) : (
 						<>
 							<button

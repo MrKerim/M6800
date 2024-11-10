@@ -64,6 +64,11 @@ function App() {
 
 			const { label, keyword, value, modifier } = instruction;
 
+			//is it a assembler directive
+			if (keyword?.toLowerCase()[0] === ".") {
+				// if not then we will check for the directive
+			}
+
 			// Label check
 			if (label) {
 				// if the label is a opcode then throw an error

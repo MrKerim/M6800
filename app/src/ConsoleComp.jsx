@@ -4,7 +4,7 @@ export default function ConsoleComp({ buildSuccess, errorOnLine }) {
 			{buildSuccess ? (
 				<h1 className="text-green-500">Assembling the program...</h1>
 			) : errorOnLine !== null ? (
-				<h1 className="text-red-500">Error on line {errorOnLine + 1}</h1>
+				<h1 className="text-red-500">Error on line {errorOnLine}</h1>
 			) : (
 				<h1>Console output</h1>
 			)}
