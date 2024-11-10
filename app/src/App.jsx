@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
-import instructionSheetScript from "./InstructionSheet";
+import {
+	instructionSheetScript,
+	assemblerDirectiveScript,
+} from "./InstructionSheet";
 import CodeEditor from "./CodeEditor";
 import MemoryDisplay from "./MemoryDisplay";
 import ConsoleComp from "./ConsoleComp";
@@ -7,7 +10,9 @@ import "./App.css";
 
 function App() {
 	const [programCounter, setProgramCounter] = useState(0);
-	const [programMemory, setProgramMemory] = useState(new Array(0xffff).fill(0));
+	const [programMemory, setProgramMemory] = useState(
+		new Array(0x10000).fill(0)
+	);
 	const [AccumulatorA, setAccumulatorA] = useState(0);
 	const [AccumulatorB, setAccumulatorB] = useState(0);
 	const [XRegister, setXRegister] = useState(0);
@@ -44,8 +49,8 @@ function App() {
 
 	function handleScriptTranscription(rawCode) {
 		let pC = 0;
-		const tempMemory = new Array(0xffff).fill(0);
-		const labels = new Map();
+		let tempMemory = new Array(0x10000).fill(0);
+		let labels = new Map();
 
 		const lines = rawCode.split("\n");
 
@@ -63,10 +68,57 @@ function App() {
 			}
 
 			const { label, keyword, value, modifier } = instruction;
-
+			console.log(
+				"label: ",
+				label,
+				"keyword: ",
+				keyword.toLowerCase(),
+				" value : ",
+				value,
+				" modifier : ",
+				modifier
+			);
 			//is it a assembler directive
 			if (keyword?.toLowerCase()[0] === ".") {
-				// if not then we will check for the directive
+				//special case .end
+				if (keyword.toLowerCase() === ".end") {
+					if (value || modifier) {
+						setErrorOnLine(index + 1);
+						return;
+					}
+					if (label) {
+						labels.set(label, pC);
+					}
+
+					break;
+				}
+
+				console.log("assembler directive");
+				if (!assemblerDirectiveScript.has(keyword.toLowerCase())) {
+					console.log("error");
+					setErrorOnLine(index + 1);
+					return;
+				}
+
+				const result = assemblerDirectiveScript.get(keyword.toLowerCase())(
+					label,
+					keyword,
+					value,
+					modifier,
+					pC,
+					tempMemory,
+					labels
+				);
+				if (!result) {
+					console.log("errodasdasd");
+					setErrorOnLine(index + 1);
+					return;
+				}
+
+				pC = result.pc;
+				tempMemory = result.tempMemory;
+				labels = result.labels;
+				continue;
 			}
 
 			// Label check
@@ -85,14 +137,7 @@ function App() {
 				setErrorOnLine(index + 1);
 				return;
 			}
-			console.log(
-				"keyword: ",
-				keyword.toLowerCase(),
-				" value : ",
-				value,
-				" modifier : ",
-				modifier
-			);
+
 			const opCodes = instructionSheetScript.get(keyword.toLowerCase())(
 				keyword.toLowerCase(),
 				value,
@@ -113,13 +158,17 @@ function App() {
 					tempMemory[pC] = opCodes[1];
 					pC++;
 				}
+				if (opCodes.length > 2) {
+					tempMemory[pC] = opCodes[2];
+					pC++;
+				}
 			} else {
 				setErrorOnLine(index + 1);
 				return;
 			}
 		}
 
-		console.log("branch labels checking");
+		console.log("labels checking");
 
 		//we will iterate over the memory and check for branch labels if we find
 		// then we will get the map memory address and subtract the value and load it into the memory
@@ -131,18 +180,62 @@ function App() {
 				const insLabel = instruction.label;
 
 				if (labels.has(insLabel)) {
-					const labelAddress = labels.get(insLabel);
-					const relativeAddress = labelAddress - PCindex;
+					console.log(instruction?.type);
+					if (instruction?.type !== undefined) {
+						if (instruction.type === "immediate") {
+							tempMemory[PCindex] = labels.get(insLabel);
+						} else if (instruction.type === "extended_or_direct_label") {
+							const labelVal = labels.get(insLabel);
+							if (labelVal < 0x100) {
+								console.log("labelVal : ", labelVal);
+								tempMemory[PCindex] = labelVal;
+							} else {
+								for (let i = tempMemory.length - 1; i > PCindex; i--) {
+									tempMemory[i] = tempMemory[i - 1]; // Shift each element to the right
+								}
 
-					if (relativeAddress > 0x80 || relativeAddress < -0x7f) {
-						console.log("branch label out of range");
-						setErrorOnLine(instruction.errorLine);
-						return;
+								tempMemory[PCindex - 1] = instruction.extendedOpCode;
+								tempMemory[PCindex] = labelVal
+									.toString(16)
+									.padStart(4, "0")
+									.slice(0, 2);
+								tempMemory[PCindex + 1] = labelVal
+									.toString(16)
+									.padStart(4, "0")
+									.slice(2, 4);
+							}
+						} else if (instruction.type === "extended") {
+							const labelVal = labels.get(insLabel);
+							tempMemory[PCindex] = labelVal
+								.toString(16)
+								.padStart(4, "0")
+								.slice(0, 2);
+							tempMemory[PCindex + 1] = labelVal
+								.toString(16)
+								.padStart(4, "0")
+								.slice(2, 4);
+						} else {
+							const errorLine = instruction.errorLine;
+							console.log("can't found the label : ", insLabel);
+							setErrorOnLine(errorLine);
+							return;
+						}
+					} else {
+						//if relative
+						const labelAddress = labels.get(insLabel);
+						const relativeAddress = labelAddress - PCindex;
+
+						if (relativeAddress > 0x80 || relativeAddress < -0x7f) {
+							console.log("branch label out of range");
+							setErrorOnLine(instruction.errorLine);
+							return;
+						}
+						if (relativeAddress < 0)
+							tempMemory[PCindex] = 0xff + relativeAddress;
+						else if (relativeAddress > 0)
+							tempMemory[PCindex] = relativeAddress - 1;
+						else tempMemory[PCindex] = relativeAddress;
 					}
-					if (relativeAddress < 0) tempMemory[PCindex] = 0xff + relativeAddress;
-					else if (relativeAddress > 0)
-						tempMemory[PCindex] = relativeAddress - 1;
-					else tempMemory[PCindex] = relativeAddress;
 				} else {
 					const errorLine = instruction.errorLine;
 					console.log("can't found the label : ", insLabel);
@@ -159,7 +252,9 @@ function App() {
 
 	function parseInstruction(line) {
 		const regex =
-			/^(?:(\w+))?\s+(\w+)(?:\s+(#?[\$%]?\w+))?\s*(?:,\s*([xy]))?\s*\s*(?=\s*(;|$))?/;
+			/^(?:(\w+))?\s+(\.?[\w]+)(?:\s+(#?[\$%]?\w+|"[^"]*"))?\s*(?:,\s*([^;]*))?\s*(?=\s*(;|$))?/;
+
+		///^(?:(\w+))?\s+(\w+)(?:\s+(#?[\$%]?\w+))?\s*(?:,\s*([xy]))?\s*\s*(?=\s*(;|$))?/;
 		const match = line.match(regex);
 
 		if (!match) {

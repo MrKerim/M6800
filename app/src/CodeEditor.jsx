@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
-import instructionSheetScript from "./InstructionSheet";
+import {
+	instructionSheetScript,
+	assemblerDirectiveScript,
+} from "./InstructionSheet";
 import MonacoEditor from "@monaco-editor/react";
 
 const CodeEditor = ({
@@ -12,6 +15,7 @@ const CodeEditor = ({
 	setBuild,
 }) => {
 	const keywords = Array.from(instructionSheetScript.keys());
+	const directives = Array.from(assemblerDirectiveScript.keys());
 	const editorRef = useRef(null); // Create a ref to store the editor instance
 	const [editorContent, setEditorContent] = useState(
 		"; Start typing your assembly code here..."
@@ -106,7 +110,18 @@ const CodeEditor = ({
 	}, [errorOnLine]);
 
 	// Build a case-insensitive regex for keywords
+
 	function buildCaseInsensitiveRegex(keyword) {
+		if (keyword[0] === ".") {
+			return (
+				"\\." +
+				keyword
+					.slice(1)
+					.split("")
+					.map((char) => `[${char.toLowerCase()}${char.toUpperCase()}]`)
+					.join("")
+			);
+		}
 		return keyword
 			.split("")
 			.map((char) => `[${char.toLowerCase()}${char.toUpperCase()}]`)
@@ -115,6 +130,11 @@ const CodeEditor = ({
 	const keywordPattern = new RegExp(
 		`\\b(${keywords.map(buildCaseInsensitiveRegex).join("|")})\\b`
 	);
+
+	const directivePattern = new RegExp(
+		`\\s+(${directives.map(buildCaseInsensitiveRegex).join("|")})\\b`
+	);
+	//const directivePattern = /\s+(\.[oO][rR][gG]|\.equ)\b/;
 
 	const registerCustomLanguage = (monaco) => {
 		monaco.languages.register({ id: "customAssembly" });
@@ -125,6 +145,8 @@ const CodeEditor = ({
 					[/#[\$%]?[a-zA-Z0-9]+/, { token: "number" }],
 					[/^([a-zA-Z_][a-zA-Z0-9_]*)/, { token: "label" }],
 					[keywordPattern, "keyword"],
+					[directivePattern, { token: "directive" }],
+					[/".*?"/, { token: "string" }],
 					[/(;.*$)/, "comment"],
 					[/\s+/, ""],
 					[/./, "text"],
@@ -139,6 +161,8 @@ const CodeEditor = ({
 			rules: [
 				{ token: "label", foreground: "#569cd6" },
 				{ token: "keyword", foreground: "#a573a2" },
+				{ token: "directive", foreground: "#9b715e" },
+				{ token: "string", foreground: "#dcdcaa" },
 				{ token: "comment", foreground: "#6a9955" },
 				{ token: "number", foreground: "#b5cea8" },
 			],

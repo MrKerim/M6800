@@ -48,97 +48,97 @@ export default function MemoryDisplay({ memory }) {
 									}
 								>
 									<h1 className=" pt-[4px]">
-										{memory[i * 15 + 0]
+										{memory[i * 16 + 0]
 											.toString(16)
 											.padStart(2, "0")
 											.toUpperCase()}
 									</h1>
 									<h1 className=" pt-[4px]">
-										{memory[i * 15 + 1]
+										{memory[i * 16 + 1]
 											.toString(16)
 											.padStart(2, "0")
 											.toUpperCase()}
 									</h1>
 									<h1 className=" pt-[4px]">
-										{memory[i * 15 + 2]
+										{memory[i * 16 + 2]
 											.toString(16)
 											.padStart(2, "0")
 											.toUpperCase()}
 									</h1>
 									<h1 className=" pt-[4px]">
-										{memory[i * 15 + 3]
+										{memory[i * 16 + 3]
 											.toString(16)
 											.padStart(2, "0")
 											.toUpperCase()}
 									</h1>
 									<h1 className=" pt-[4px]">
-										{memory[i * 15 + 4]
+										{memory[i * 16 + 4]
 											.toString(16)
 											.padStart(2, "0")
 											.toUpperCase()}
 									</h1>
 									<h1 className=" pt-[4px]">
-										{memory[i * 15 + 5]
+										{memory[i * 16 + 5]
 											.toString(16)
 											.padStart(2, "0")
 											.toUpperCase()}
 									</h1>
 									<h1 className=" pt-[4px]">
-										{memory[i * 15 + 6]
+										{memory[i * 16 + 6]
 											.toString(16)
 											.padStart(2, "0")
 											.toUpperCase()}
 									</h1>
 									<h1 className=" pt-[4px]">
-										{memory[i * 15 + 7]
+										{memory[i * 16 + 7]
 											.toString(16)
 											.padStart(2, "0")
 											.toUpperCase()}
 									</h1>
 									<h1 className=" pt-[4px]">
-										{memory[i * 15 + 8]
+										{memory[i * 16 + 8]
 											.toString(16)
 											.padStart(2, "0")
 											.toUpperCase()}
 									</h1>
 									<h1 className=" pt-[4px]">
-										{memory[i * 15 + 9]
+										{memory[i * 16 + 9]
 											.toString(16)
 											.padStart(2, "0")
 											.toUpperCase()}
 									</h1>
 									<h1 className=" pt-[4px]">
-										{memory[i * 15 + 10]
+										{memory[i * 16 + 10]
 											.toString(16)
 											.padStart(2, "0")
 											.toUpperCase()}
 									</h1>
 									<h1 className=" pt-[4px]">
-										{memory[i * 15 + 11]
+										{memory[i * 16 + 11]
 											.toString(16)
 											.padStart(2, "0")
 											.toUpperCase()}
 									</h1>
 									<h1 className=" pt-[4px]">
-										{memory[i * 15 + 12]
+										{memory[i * 16 + 12]
 											.toString(16)
 											.padStart(2, "0")
 											.toUpperCase()}
 									</h1>
 									<h1 className=" pt-[4px]">
-										{memory[i * 15 + 13]
+										{memory[i * 16 + 13]
 											.toString(16)
 											.padStart(2, "0")
 											.toUpperCase()}
 									</h1>
 									<h1 className=" pt-[4px]">
-										{memory[i * 15 + 14]
+										{memory[i * 16 + 14]
 											.toString(16)
 											.padStart(2, "0")
 											.toUpperCase()}
 									</h1>
 									<h1 className=" pt-[4px]">
-										{memory[i * 15 + 15]
+										{memory[i * 16 + 15]
 											.toString(16)
 											.padStart(2, "0")
 											.toUpperCase()}

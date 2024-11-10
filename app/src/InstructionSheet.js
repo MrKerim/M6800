@@ -1,4 +1,420 @@
 const instructionSheetScript = new Map();
+const assemblerDirectiveScript = new Map();
+
+assemblerDirectiveScript.set(".end", 1);
+// special case handled in the main function
+
+/*
+-- -----------------------
+-- label directive operand modifier
+-- -----------------------
+*/
+
+/*
+-- -----------------------
+-- (no label) .org operand
+-- operand -> PC
+-- -----------------------
+*/
+
+function org(label, directive, operand, modifier, pC, tempMemory, labels) {
+	console.log("org");
+	// there should be no label
+	if (label) return null;
+	// there should be no modifier
+	if (modifier) return null;
+	// there should be an operand
+	if (!operand) return null;
+	// operand should be a memory address
+	if (operand[0] === "#") return null;
+
+	if (operand[0] === "$") {
+		//hexadecimal
+		if (isNaN(parseInt(operand.slice(1), 16))) return null;
+		else if (parseInt(operand.slice(1), 16) > 0xff) return null;
+		else
+			return {
+				pc: parseInt(operand.slice(1), 16),
+				tempMemory: tempMemory,
+				labels: labels,
+			};
+	}
+	if (operand[0] === "%") {
+		//binary
+		if (isNaN(parseInt(operand.slice(1), 2))) return null;
+		else if (parseInt(operand.slice(1), 2) > 0xff) return null;
+		else
+			return {
+				pc: parseInt(operand.slice(1), 2),
+				tempMemory: tempMemory,
+				labels: labels,
+			};
+	}
+	//decimal
+	if (isNaN(parseInt(operand))) return null;
+	else if (parseInt(operand) > 0xff) return null;
+	else return { pc: parseInt(operand), tempMemory: tempMemory, labels: labels };
+}
+assemblerDirectiveScript.set(".org", org);
+
+/*
+-- -----------------------
+-- label .equ operand
+-- operand -> label
+-- -----------------------
+*/
+
+function equ(label, directive, operand, modifier, pC, tempMemory, labels) {
+	// there should be a label
+	if (!label) return null;
+	if (!isLabel(label)) return null;
+	// there should be no modifier
+	if (modifier) return null;
+	// there should be an operand
+	if (!operand) return null;
+	// operand should be a memory address
+	if (operand[0] === "#") return null;
+
+	if (operand[0] === "$") {
+		//hexadecimal
+		if (isNaN(parseInt(operand.slice(1), 16))) return null;
+		else if (parseInt(operand.slice(1), 16) > 0xff) return null;
+		else {
+			labels.set(label, parseInt(operand.slice(1), 16));
+			return { pc: pC + 1, tempMemory: tempMemory, labels: labels };
+		}
+	}
+	if (operand[0] === "%") {
+		//binary
+		if (isNaN(parseInt(operand.slice(1), 2))) return null;
+		else if (parseInt(operand.slice(1), 2) > 0xff) return null;
+		else {
+			labels.set(label, parseInt(operand.slice(1), 2));
+			return {
+				pc: parseInt(operand.slice(1), 2),
+				tempMemory: tempMemory,
+				labels: labels,
+			};
+		}
+	}
+	//decimal
+	if (isNaN(parseInt(operand))) return null;
+	else if (parseInt(operand) > 0xff) return null;
+	else {
+		labels.set(label, parseInt(operand));
+		return { pc: parseInt(operand), tempMemory: tempMemory, labels: labels };
+	}
+}
+assemblerDirectiveScript.set(".equ", equ);
+
+/*
+-- -----------------------
+-- label .rmb operand
+-- PC -> label , PC + operand -> PC
+-- -----------------------
+*/
+
+function rmb(label, directive, operand, modifier, pC, tempMemory, labels) {
+	if (label) {
+		if (!isLabel(label)) return null;
+		labels.set(label, pC);
+	}
+	// there should be no modifier
+	if (modifier) return null;
+	// there should be an operand
+	if (!operand) return null;
+	// operand should be a memory address
+	if (operand[0] === "#") return null;
+
+	if (operand[0] === "$") {
+		//hexadecimal
+		if (isNaN(parseInt(operand.slice(1), 16))) return null;
+		else if (parseInt(operand.slice(1), 16) > 0xff) return null;
+		else {
+			return {
+				pc: pC + parseInt(operand.slice(1), 16),
+				tempMemory: tempMemory,
+				labels: labels,
+			};
+		}
+	}
+	if (operand[0] === "%") {
+		//binary
+		if (isNaN(parseInt(operand.slice(1), 2))) return null;
+		else if (parseInt(operand.slice(1), 2) > 0xff) return null;
+		else {
+			return {
+				pc: pC + parseInt(operand.slice(1), 2),
+				tempMemory: tempMemory,
+				labels: labels,
+			};
+		}
+	}
+	//decimal
+	if (isNaN(parseInt(operand))) return null;
+	else if (parseInt(operand) > 0xff) return null;
+	else {
+		return {
+			pc: pC + parseInt(operand),
+			tempMemory: tempMemory,
+			labels: labels,
+		};
+	}
+}
+assemblerDirectiveScript.set(".rmb", rmb);
+
+/*
+-- -----------------------
+-- label .setb operand
+-- PC -> label ,  operand -> Memory[PC]
+-- -----------------------
+*/
+function setb(label, directive, operand, modifier, pC, tempMemory, labels) {
+	if (label) {
+		if (!isLabel(label)) return null;
+		labels.set(label, pC);
+	}
+	// there should be no modifier
+	if (modifier) return null;
+	// there should be an operand
+	if (!operand) return null;
+	// operand should be a memory address
+	if (operand[0] === "#") return null;
+
+	if (operand[0] === "$") {
+		//hexadecimal
+		if (isNaN(parseInt(operand.slice(1), 16))) return null;
+		else if (parseInt(operand.slice(1), 16) > 0xff) return null;
+		else {
+			if (parseInt(operand.slice(1), 16) > 0xff) return null;
+			tempMemory[pC] = parseInt(operand.slice(1), 16);
+			return { pc: pC + 1, tempMemory: tempMemory, labels: labels };
+		}
+	}
+	if (operand[0] === "%") {
+		//binary
+		if (isNaN(parseInt(operand.slice(1), 2))) return null;
+		else if (parseInt(operand.slice(1), 2) > 0xff) return null;
+		else {
+			if (parseInt(operand.slice(1), 2) > 0xff) return null;
+			tempMemory[pC] = parseInt(operand.slice(1), 2);
+			return { pc: pC + 1, tempMemory: tempMemory, labels: labels };
+		}
+	}
+	//decimal
+	if (isNaN(parseInt(operand))) return null;
+	else if (parseInt(operand) > 0xff) return null;
+	else {
+		if (parseInt(operand) > 0xff) return null;
+		tempMemory[pC] = parseInt(operand);
+		return { pc: pC + 1, tempMemory: tempMemory, labels: labels };
+	}
+}
+assemblerDirectiveScript.set(".setb", setb);
+
+/*
+-- -----------------------
+-- label .setw operand
+-- PC -> label ,  operand -> Memory[PC] , Memory[PC + 1]
+-- -----------------------
+*/
+
+function setw(label, directive, operand, modifier, pC, tempMemory, labels) {
+	if (label) {
+		if (!isLabel(label)) return null;
+		labels.set(label, pC);
+	}
+	// there should be no modifier
+	if (modifier) return null;
+	// there should be an operand
+	if (!operand) return null;
+	// operand should be a memory address
+	if (operand[0] === "#") return null;
+
+	if (operand[0] === "$") {
+		//hexadecimal
+		if (isNaN(parseInt(operand.slice(1), 16))) return null;
+		else if (parseInt(operand.slice(1), 16) > 0xffff) return null;
+		else {
+			if (parseInt(operand.slice(1), 16) > 0xffff) return null;
+			tempMemory[pC + 1] = parseInt(operand.slice(1), 16) & 0xff;
+			tempMemory[pC] = (parseInt(operand.slice(1), 16) & 0xff00) >> 8;
+			return { pc: pC + 2, tempMemory: tempMemory, labels: labels };
+		}
+	}
+	if (operand[0] === "%") {
+		//binary
+		if (isNaN(parseInt(operand.slice(1), 2))) return null;
+		else if (parseInt(operand.slice(1), 2) > 0xffff) return null;
+		else {
+			if (parseInt(operand.slice(1), 2) > 0xffff) return null;
+			tempMemory[pC + 1] = parseInt(operand.slice(1), 2) & 0xff;
+			tempMemory[pC] = (parseInt(operand.slice(1), 2) & 0xff00) >> 8;
+			return { pc: pC + 2, tempMemory: tempMemory, labels: labels };
+		}
+	}
+	//decimal
+	if (isNaN(parseInt(operand))) return null;
+	else if (parseInt(operand) > 0xffff) return null;
+	else {
+		if (parseInt(operand) > 0xffff) return null;
+		tempMemory[pC + 1] = parseInt(operand) & 0xff;
+		tempMemory[pC] = (parseInt(operand) & 0xff00) >> 8;
+		return { pc: pC + 2, tempMemory: tempMemory, labels: labels };
+	}
+}
+assemblerDirectiveScript.set(".setw", setw);
+
+/*
+-- -----------------------
+-- label .byte operand,modfier
+-- PC -> label ,  operand,modfier -> Memory[PC] , Memory[PC ..]..
+-- -----------------------
+*/
+
+function byte(label, directive, operand, modifier, pC, tempMemory, labels) {
+	if (label) {
+		if (!isLabel(label)) return null;
+		labels.set(label, pC);
+	}
+	// there cane be a modifier
+	let values = [];
+	if (modifier) {
+		values = modifier.split(",");
+	}
+	// there should be an operand
+	if (!operand) return null;
+	values = [operand, ...values];
+	// operand should be a memory address
+	if (operand[0] === "#") return null;
+
+	let index = 0;
+	for (let i = 0; i < values.length; i++) {
+		if (values[i][0] === "$") {
+			//hexadecimal
+			if (isNaN(parseInt(values[i].slice(1), 16))) return null;
+			else if (parseInt(values[i].slice(1), 16) > 0xff) return null;
+			else {
+				if (parseInt(values[i].slice(1), 16) > 0xff) return null;
+				tempMemory[pC + index] = parseInt(values[i].slice(1), 16);
+				index++;
+			}
+		} else if (values[i][0] === "%") {
+			//binary
+			if (isNaN(parseInt(values[i].slice(1), 2))) return null;
+			else if (parseInt(values[i].slice(1), 2) > 0xff) return null;
+			else {
+				if (parseInt(values[i].slice(1), 2) > 0xff) return null;
+				tempMemory[pC + index] = parseInt(values[i].slice(1), 2);
+				index++;
+			}
+		} else {
+			//decimal
+			if (isNaN(parseInt(values[i]))) return null;
+			else if (parseInt(values[i]) > 0xff) return null;
+			else {
+				if (parseInt(values[i]) > 0xff) return null;
+				tempMemory[pC + index] = parseInt(values[i]);
+				index++;
+			}
+		}
+	}
+	return { pc: pC + index, tempMemory: tempMemory, labels: labels };
+}
+assemblerDirectiveScript.set(".byte", byte);
+
+/*
+-- -----------------------
+-- label .word operand,modfier
+-- PC -> label ,  operand,modfier -> Memory[PC] , Memory[PC ..]..
+-- -----------------------
+*/
+
+function word(label, directive, operand, modifier, pC, tempMemory, labels) {
+	if (label) {
+		if (!isLabel(label)) return null;
+		labels.set(label, pC);
+	}
+	// there cane be a modifier
+	let values = [];
+	if (modifier) {
+		values = modifier.split(",");
+	}
+	// there should be an operand
+	if (!operand) return null;
+	values = [operand, ...values];
+	// operand should be a memory address
+	if (operand[0] === "#") return null;
+
+	let index = 0;
+	for (let i = 0; i < values.length; i++) {
+		if (values[i][0] === "$") {
+			//hexadecimal
+			if (isNaN(parseInt(values[i].slice(1), 16))) return null;
+			else if (parseInt(values[i].slice(1), 16) > 0xffff) return null;
+			else {
+				tempMemory[pC + index + 1] = parseInt(values[i].slice(1), 16) & 0xff;
+				tempMemory[pC + index] =
+					(parseInt(values[i].slice(1), 16) & 0xff00) >> 8;
+				index = index + 2;
+			}
+		} else if (values[i][0] === "%") {
+			//binary
+			if (isNaN(parseInt(values[i].slice(1), 2))) return null;
+			else if (parseInt(values[i].slice(1), 2) > 0xff) return null;
+			else {
+				if (parseInt(values[i].slice(1), 2) > 0xff) return null;
+				tempMemory[pC + index + 1] = parseInt(values[i].slice(1), 2) & 0xff;
+				tempMemory[pC + index] =
+					(parseInt(values[i].slice(1), 2) & 0xff00) >> 8;
+				index = index + 2;
+			}
+		} else {
+			//decimal
+			if (isNaN(parseInt(values[i]))) return null;
+			else if (parseInt(values[i]) > 0xff) return null;
+			else {
+				if (parseInt(values[i]) > 0xff) return null;
+				tempMemory[pC + index + 1] = parseInt(values[i]) & 0xff;
+				tempMemory[pC + index] = (parseInt(values[i]) & 0xff00) >> 8;
+				index = index + 2;
+			}
+		}
+	}
+	return { pc: pC + index, tempMemory: tempMemory, labels: labels };
+}
+assemblerDirectiveScript.set(".word", word);
+
+/*
+-- -----------------------
+-- label .str operand
+-- PC -> label ,  operand[0] -> Memory[PC] , Memory[PC ..].. , 0 -> Memory[PC + operand.length]
+-- -----------------------
+*/
+
+function str(label, directive, operand, modifier, pC, tempMemory, labels) {
+	if (label) {
+		if (!isLabel(label)) return null;
+		labels.set(label, pC);
+	}
+	// there should be no modifier
+	if (modifier) return null;
+	// there should be an operand
+	if (!operand) return null;
+	// operand should be a memory address
+
+	if (operand[0] !== '"') return null;
+	if (operand[operand.length - 1] !== '"') return null;
+
+	let index = 0;
+	for (let i = 1; i < operand.length - 1; i++) {
+		tempMemory[pC + index] = operand.charCodeAt(i);
+		index++;
+	}
+	tempMemory[pC + index] = 0;
+	return { pc: pC + index + 1, tempMemory: tempMemory, labels: labels };
+}
+assemblerDirectiveScript.set(".str", str);
 
 /*
 ABA - AccA + AccB -> AccA
@@ -794,6 +1210,9 @@ however
 |-> if value is a $ then it is a hexadecimal
 L-> if value is a % then it is a binary
 
+Wee need to keep in mind that the value can be a label
+so if we can't find anythign we assume the value is a label
+
 There is also relative adressing which uses labels
 we deal with them in the app later , we will directly pass them as labels to the memory
 when dealin with thoose functions
@@ -802,6 +1221,8 @@ function checkAddressingMode(value, modifier) {
 	if (!value) return null;
 	//if there is no value it's an error
 	if (modifier) {
+		console.log("modifier", modifier);
+		if (modifier.trim() !== "x") return null;
 		//if there is a modifier it's indexed addressing
 		// we need to find which value type it is
 		if (value[0] === "$") {
@@ -853,9 +1274,15 @@ function checkAddressingMode(value, modifier) {
 					value: parseInt(value.slice(2), 2),
 				};
 		}
-		//decimal
-		if (isNaN(parseInt(value.slice(1)))) return null;
-		else if (parseInt(value.slice(1)) > 0xff) return null;
+		//decimal or label
+		if (isNaN(parseInt(value.slice(1)))) {
+			// is it a label
+			if (!isLabel(value.slice(1))) return null;
+			return {
+				addressingMode: "immediate",
+				value: value.slice(1),
+			};
+		} else if (parseInt(value.slice(1)) > 0xff) return null;
 		else
 			return { addressingMode: "immediate", value: parseInt(value.slice(1)) };
 	}
@@ -885,9 +1312,13 @@ function checkAddressingMode(value, modifier) {
 		} else
 			return { addressingMode: "direct", value: parseInt(value.slice(1), 2) };
 	}
-	//decimal
-	if (isNaN(parseInt(value))) return null;
-	else if (parseInt(value) > 0xff) {
+	//decimal or label
+	if (isNaN(parseInt(value))) {
+		return {
+			addressingMode: "extended_or_direct_label",
+			value: value,
+		};
+	} else if (parseInt(value) > 0xff) {
 		if (parseInt(value) > 0xffff) return null;
 		return {
 			addressingMode: "extended",
@@ -918,13 +1349,34 @@ function adca(keyword, value, modifier) {
 	if (addressingMode) {
 		switch (addressingMode.addressingMode) {
 			case "immediate":
+				if (isNaN(addressingMode.value)) {
+					return [
+						0x89,
+						{ errorLine: null, label: addressingMode.value, type: "immediate" },
+					];
+				}
 				return [0x89, addressingMode.value];
 			case "direct":
 				return [0x99, addressingMode.value];
 			case "indexed":
 				return [0xa9, addressingMode.value];
 			case "extended":
-				return [0xb9, addressingMode.value];
+				return [
+					0xb9,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0x99,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xb9,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -946,13 +1398,34 @@ function adcb(keyword, value, modifier) {
 	if (addressingMode) {
 		switch (addressingMode.addressingMode) {
 			case "immediate":
+				if (isNaN(addressingMode.value)) {
+					return [
+						0xc9,
+						{ errorLine: null, label: addressingMode.value, type: "immediate" },
+					];
+				}
 				return [0xc9, addressingMode.value];
 			case "direct":
 				return [0xd9, addressingMode.value];
 			case "indexed":
 				return [0xe9, addressingMode.value];
 			case "extended":
-				return [0xf9, addressingMode.value];
+				return [
+					0xf9,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0xd9,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xf9,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -974,13 +1447,34 @@ function adda(keyword, value, modifier) {
 	if (addressingMode) {
 		switch (addressingMode.addressingMode) {
 			case "immediate":
+				if (isNaN(addressingMode.value)) {
+					return [
+						0x8b,
+						{ errorLine: null, label: addressingMode.value, type: "immediate" },
+					];
+				}
 				return [0x8b, addressingMode.value];
 			case "direct":
 				return [0x9b, addressingMode.value];
 			case "indexed":
 				return [0xab, addressingMode.value];
 			case "extended":
-				return [0xbb, addressingMode.value];
+				return [
+					0xbb,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0x9b,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xbb,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -1002,13 +1496,34 @@ function addb(keyword, value, modifier) {
 	if (addressingMode) {
 		switch (addressingMode.addressingMode) {
 			case "immediate":
+				if (isNaN(addressingMode.value)) {
+					return [
+						0xcb,
+						{ errorLine: null, label: addressingMode.value, type: "immediate" },
+					];
+				}
 				return [0xcb, addressingMode.value];
 			case "direct":
 				return [0xdb, addressingMode.value];
 			case "indexed":
 				return [0xeb, addressingMode.value];
 			case "extended":
-				return [0xfb, addressingMode.value];
+				return [
+					0xfb,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0xdb,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xfb,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -1030,13 +1545,34 @@ function anda(keyword, value, modifier) {
 	if (addressingMode) {
 		switch (addressingMode.addressingMode) {
 			case "immediate":
+				if (isNaN(addressingMode.value)) {
+					return [
+						0x84,
+						{ errorLine: null, label: addressingMode.value, type: "immediate" },
+					];
+				}
 				return [0x84, addressingMode.value];
 			case "direct":
 				return [0x94, addressingMode.value];
 			case "indexed":
 				return [0xa4, addressingMode.value];
 			case "extended":
-				return [0xb4, addressingMode.value];
+				return [
+					0xb4,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0x94,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xb4,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -1058,13 +1594,34 @@ function andb(keyword, value, modifier) {
 	if (addressingMode) {
 		switch (addressingMode.addressingMode) {
 			case "immediate":
+				if (isNaN(addressingMode.value)) {
+					return [
+						0xc4,
+						{ errorLine: null, label: addressingMode.value, type: "immediate" },
+					];
+				}
 				return [0xc4, addressingMode.value];
 			case "direct":
 				return [0xd4, addressingMode.value];
 			case "indexed":
 				return [0xe4, addressingMode.value];
 			case "extended":
-				return [0xf4, addressingMode.value];
+				return [
+					0xf4,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0xd4,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xf4,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -1086,13 +1643,34 @@ function bita(keyword, value, modifier) {
 	if (addressingMode) {
 		switch (addressingMode.addressingMode) {
 			case "immediate":
+				if (isNaN(addressingMode.value)) {
+					return [
+						0x85,
+						{ errorLine: null, label: addressingMode.value, type: "immediate" },
+					];
+				}
 				return [0x85, addressingMode.value];
 			case "direct":
 				return [0x95, addressingMode.value];
 			case "indexed":
 				return [0xa5, addressingMode.value];
 			case "extended":
-				return [0xb5, addressingMode.value];
+				return [
+					0xb5,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0x95,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xb5,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -1114,13 +1692,34 @@ function bitb(keyword, value, modifier) {
 	if (addressingMode) {
 		switch (addressingMode.addressingMode) {
 			case "immediate":
+				if (isNaN(addressingMode.value)) {
+					return [
+						0xc5,
+						{ errorLine: null, label: addressingMode.value, type: "immediate" },
+					];
+				}
 				return [0xc5, addressingMode.value];
 			case "direct":
 				return [0xd5, addressingMode.value];
 			case "indexed":
 				return [0xe5, addressingMode.value];
 			case "extended":
-				return [0xf5, addressingMode.value];
+				return [
+					0xf5,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0xd5,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xf5,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -1142,13 +1741,34 @@ function cmpa(keyword, value, modifier) {
 	if (addressingMode) {
 		switch (addressingMode.addressingMode) {
 			case "immediate":
+				if (isNaN(addressingMode.value)) {
+					return [
+						0x81,
+						{ errorLine: null, label: addressingMode.value, type: "immediate" },
+					];
+				}
 				return [0x81, addressingMode.value];
 			case "direct":
 				return [0x91, addressingMode.value];
 			case "indexed":
 				return [0xa1, addressingMode.value];
 			case "extended":
-				return [0xb1, addressingMode.value];
+				return [
+					0xb1,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0x91,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xb1,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -1170,13 +1790,34 @@ function cmpb(keyword, value, modifier) {
 	if (addressingMode) {
 		switch (addressingMode.addressingMode) {
 			case "immediate":
+				if (isNaN(addressingMode.value)) {
+					return [
+						0xc1,
+						{ errorLine: null, label: addressingMode.value, type: "immediate" },
+					];
+				}
 				return [0xc1, addressingMode.value];
 			case "direct":
 				return [0xd1, addressingMode.value];
 			case "indexed":
 				return [0xe1, addressingMode.value];
 			case "extended":
-				return [0xf1, addressingMode.value];
+				return [
+					0xf1,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0xd1,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xf1,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -1198,13 +1839,34 @@ function eora(keyword, value, modifier) {
 	if (addressingMode) {
 		switch (addressingMode.addressingMode) {
 			case "immediate":
+				if (isNaN(addressingMode.value)) {
+					return [
+						0x88,
+						{ errorLine: null, label: addressingMode.value, type: "immediate" },
+					];
+				}
 				return [0x88, addressingMode.value];
 			case "direct":
 				return [0x98, addressingMode.value];
 			case "indexed":
 				return [0xa8, addressingMode.value];
 			case "extended":
-				return [0xb8, addressingMode.value];
+				return [
+					0xb8,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0x98,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xb8,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -1226,13 +1888,34 @@ function eorb(keyword, value, modifier) {
 	if (addressingMode) {
 		switch (addressingMode.addressingMode) {
 			case "immediate":
+				if (isNaN(addressingMode.value)) {
+					return [
+						0xc8,
+						{ errorLine: null, label: addressingMode.value, type: "immediate" },
+					];
+				}
 				return [0xc8, addressingMode.value];
 			case "direct":
 				return [0xd8, addressingMode.value];
 			case "indexed":
 				return [0xe8, addressingMode.value];
 			case "extended":
-				return [0xf8, addressingMode.value];
+				return [
+					0xf8,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0xd8,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xf8,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -1254,13 +1937,34 @@ function ldaa(keyword, value, modifier) {
 	if (addressingMode) {
 		switch (addressingMode.addressingMode) {
 			case "immediate":
+				if (isNaN(addressingMode.value)) {
+					return [
+						0x86,
+						{ errorLine: null, label: addressingMode.value, type: "immediate" },
+					];
+				}
 				return [0x86, addressingMode.value];
 			case "direct":
 				return [0x96, addressingMode.value];
 			case "indexed":
 				return [0xa6, addressingMode.value];
 			case "extended":
-				return [0xb6, addressingMode.value];
+				return [
+					0xb6,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0x96,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xb6,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -1282,13 +1986,34 @@ function ldab(keyword, value, modifier) {
 	if (addressingMode) {
 		switch (addressingMode.addressingMode) {
 			case "immediate":
+				if (isNaN(addressingMode.value)) {
+					return [
+						0xc6,
+						{ errorLine: null, label: addressingMode.value, type: "immediate" },
+					];
+				}
 				return [0xc6, addressingMode.value];
 			case "direct":
 				return [0xd6, addressingMode.value];
 			case "indexed":
 				return [0xe6, addressingMode.value];
 			case "extended":
-				return [0xf6, addressingMode.value];
+				return [
+					0xf6,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0xd6,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xf6,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -1310,13 +2035,34 @@ function oraa(keyword, value, modifier) {
 	if (addressingMode) {
 		switch (addressingMode.addressingMode) {
 			case "immediate":
+				if (isNaN(addressingMode.value)) {
+					return [
+						0x8a,
+						{ errorLine: null, label: addressingMode.value, type: "immediate" },
+					];
+				}
 				return [0x8a, addressingMode.value];
 			case "direct":
 				return [0x9a, addressingMode.value];
 			case "indexed":
 				return [0xaa, addressingMode.value];
 			case "extended":
-				return [0xba, addressingMode.value];
+				return [
+					0xba,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0x9a,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xba,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -1338,13 +2084,34 @@ function orab(keyword, value, modifier) {
 	if (addressingMode) {
 		switch (addressingMode.addressingMode) {
 			case "immediate":
+				if (isNaN(addressingMode.value)) {
+					return [
+						0xca,
+						{ errorLine: null, label: addressingMode.value, type: "immediate" },
+					];
+				}
 				return [0xca, addressingMode.value];
 			case "direct":
 				return [0xda, addressingMode.value];
 			case "indexed":
 				return [0xea, addressingMode.value];
 			case "extended":
-				return [0xfa, addressingMode.value];
+				return [
+					0xfa,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0xda,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xfa,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -1366,13 +2133,34 @@ function sbca(keyword, value, modifier) {
 	if (addressingMode) {
 		switch (addressingMode.addressingMode) {
 			case "immediate":
+				if (isNaN(addressingMode.value)) {
+					return [
+						0x82,
+						{ errorLine: null, label: addressingMode.value, type: "immediate" },
+					];
+				}
 				return [0x82, addressingMode.value];
 			case "direct":
 				return [0x92, addressingMode.value];
 			case "indexed":
 				return [0xa2, addressingMode.value];
 			case "extended":
-				return [0xb2, addressingMode.value];
+				return [
+					0xb2,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0x92,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xb2,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -1394,13 +2182,34 @@ function sbcb(keyword, value, modifier) {
 	if (addressingMode) {
 		switch (addressingMode.addressingMode) {
 			case "immediate":
+				if (isNaN(addressingMode.value)) {
+					return [
+						0xc2,
+						{ errorLine: null, label: addressingMode.value, type: "immediate" },
+					];
+				}
 				return [0xc2, addressingMode.value];
 			case "direct":
 				return [0xd2, addressingMode.value];
 			case "indexed":
 				return [0xe2, addressingMode.value];
 			case "extended":
-				return [0xf2, addressingMode.value];
+				return [
+					0xf2,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0xd2,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xf2,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -1422,13 +2231,34 @@ function suba(keyword, value, modifier) {
 	if (addressingMode) {
 		switch (addressingMode.addressingMode) {
 			case "immediate":
+				if (isNaN(addressingMode.value)) {
+					return [
+						0x80,
+						{ errorLine: null, label: addressingMode.value, type: "immediate" },
+					];
+				}
 				return [0x80, addressingMode.value];
 			case "direct":
 				return [0x90, addressingMode.value];
 			case "indexed":
 				return [0xa0, addressingMode.value];
 			case "extended":
-				return [0xb0, addressingMode.value];
+				return [
+					0xb0,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0x90,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xb0,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -1450,13 +2280,34 @@ function subb(keyword, value, modifier) {
 	if (addressingMode) {
 		switch (addressingMode.addressingMode) {
 			case "immediate":
+				if (isNaN(addressingMode.value)) {
+					return [
+						0xc0,
+						{ errorLine: null, label: addressingMode.value, type: "immediate" },
+					];
+				}
 				return [0xc0, addressingMode.value];
 			case "direct":
 				return [0xd0, addressingMode.value];
 			case "indexed":
 				return [0xe0, addressingMode.value];
 			case "extended":
-				return [0xf0, addressingMode.value];
+				return [
+					0xf0,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0xd0,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xf0,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -1478,13 +2329,34 @@ function cpx(keyword, value, modifier) {
 	if (addressingMode) {
 		switch (addressingMode.addressingMode) {
 			case "immediate":
+				if (isNaN(addressingMode.value)) {
+					return [
+						0x8c,
+						{ errorLine: null, label: addressingMode.value, type: "immediate" },
+					];
+				}
 				return [0x8c, addressingMode.value];
 			case "direct":
 				return [0x9c, addressingMode.value];
 			case "indexed":
 				return [0xac, addressingMode.value];
 			case "extended":
-				return [0xbc, addressingMode.value];
+				return [
+					0xbc,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0x9c,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xbc,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -1506,13 +2378,34 @@ function lds(keyword, value, modifier) {
 	if (addressingMode) {
 		switch (addressingMode.addressingMode) {
 			case "immediate":
+				if (isNaN(addressingMode.value)) {
+					return [
+						0x8e,
+						{ errorLine: null, label: addressingMode.value, type: "immediate" },
+					];
+				}
 				return [0x8e, addressingMode.value];
 			case "direct":
 				return [0x9e, addressingMode.value];
 			case "indexed":
 				return [0xae, addressingMode.value];
 			case "extended":
-				return [0xbe, addressingMode.value];
+				return [
+					0xbe,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0x9e,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xbe,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -1534,13 +2427,34 @@ function ldx(keyword, value, modifier) {
 	if (addressingMode) {
 		switch (addressingMode.addressingMode) {
 			case "immediate":
+				if (isNaN(addressingMode.value)) {
+					return [
+						0xce,
+						{ errorLine: null, label: addressingMode.value, type: "immediate" },
+					];
+				}
 				return [0xce, addressingMode.value];
 			case "direct":
 				return [0xde, addressingMode.value];
 			case "indexed":
 				return [0xee, addressingMode.value];
 			case "extended":
-				return [0xfe, addressingMode.value];
+				return [
+					0xfe,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0xde,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xfe,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -1570,7 +2484,18 @@ function asl(keyword, value, modifier) {
 			case "indexed":
 				return [0x68, addressingMode.value];
 			case "extended":
-				return [0x78, addressingMode.value];
+				return [
+					0x78,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//it is a extended label
+				return [
+					0x78,
+					{ errorLine: null, label: addressingMode.value, type: "extended" },
+					"00",
+				];
 			default:
 				return null;
 		}
@@ -1594,7 +2519,18 @@ function asr(keyword, value, modifier) {
 			case "indexed":
 				return [0x67, addressingMode.value];
 			case "extended":
-				return [0x77, addressingMode.value];
+				return [
+					0x77,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//it is a extended label
+				return [
+					0x77,
+					{ errorLine: null, label: addressingMode.value, type: "extended" },
+					"00",
+				];
 			default:
 				return null;
 		}
@@ -1618,7 +2554,18 @@ function clr(keyword, value, modifier) {
 			case "indexed":
 				return [0x6f, addressingMode.value];
 			case "extended":
-				return [0x7f, addressingMode.value];
+				return [
+					0x7f,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//it is a extended label
+				return [
+					0x7f,
+					{ errorLine: null, label: addressingMode.value, type: "extended" },
+					"00",
+				];
 			default:
 				return null;
 		}
@@ -1642,7 +2589,18 @@ function com(keyword, value, modifier) {
 			case "indexed":
 				return [0x63, addressingMode.value];
 			case "extended":
-				return [0x73, addressingMode.value];
+				return [
+					0x73,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//it is a extended label
+				return [
+					0x73,
+					{ errorLine: null, label: addressingMode.value, type: "extended" },
+					"00",
+				];
 			default:
 				return null;
 		}
@@ -1666,7 +2624,18 @@ function dec(keyword, value, modifier) {
 			case "indexed":
 				return [0x6a, addressingMode.value];
 			case "extended":
-				return [0x7a, addressingMode.value];
+				return [
+					0x7a,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//it is a extended label
+				return [
+					0x7a,
+					{ errorLine: null, label: addressingMode.value, type: "extended" },
+					"00",
+				];
 			default:
 				return null;
 		}
@@ -1690,7 +2659,18 @@ function inc(keyword, value, modifier) {
 			case "indexed":
 				return [0x6c, addressingMode.value];
 			case "extended":
-				return [0x7c, addressingMode.value];
+				return [
+					0x7c,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//it is a extended label
+				return [
+					0x7c,
+					{ errorLine: null, label: addressingMode.value, type: "extended" },
+					"00",
+				];
 			default:
 				return null;
 		}
@@ -1714,7 +2694,18 @@ function lsr(keyword, value, modifier) {
 			case "indexed":
 				return [0x64, addressingMode.value];
 			case "extended":
-				return [0x74, addressingMode.value];
+				return [
+					0x74,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//it is a extended label
+				return [
+					0x74,
+					{ errorLine: null, label: addressingMode.value, type: "extended" },
+					"00",
+				];
 			default:
 				return null;
 		}
@@ -1738,7 +2729,18 @@ function neg(keyword, value, modifier) {
 			case "indexed":
 				return [0x60, addressingMode.value];
 			case "extended":
-				return [0x70, addressingMode.value];
+				return [
+					0x70,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//it is a extended label
+				return [
+					0x70,
+					{ errorLine: null, label: addressingMode.value, type: "extended" },
+					"00",
+				];
 			default:
 				return null;
 		}
@@ -1762,7 +2764,18 @@ function rol(keyword, value, modifier) {
 			case "indexed":
 				return [0x69, addressingMode.value];
 			case "extended":
-				return [0x79, addressingMode.value];
+				return [
+					0x79,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//it is a extended label
+				return [
+					0x79,
+					{ errorLine: null, label: addressingMode.value, type: "extended" },
+					"00",
+				];
 			default:
 				return null;
 		}
@@ -1786,7 +2799,18 @@ function ror(keyword, value, modifier) {
 			case "indexed":
 				return [0x66, addressingMode.value];
 			case "extended":
-				return [0x76, addressingMode.value];
+				return [
+					0x76,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//it is a extended label
+				return [
+					0x76,
+					{ errorLine: null, label: addressingMode.value, type: "extended" },
+					"00",
+				];
 			default:
 				return null;
 		}
@@ -1812,7 +2836,22 @@ function staa(keyword, value, modifier) {
 			case "indexed":
 				return [0xa7, addressingMode.value];
 			case "extended":
-				return [0xb7, addressingMode.value];
+				return [
+					0xb7,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0x97,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xb7,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -1838,7 +2877,22 @@ function stab(keyword, value, modifier) {
 			case "indexed":
 				return [0xe7, addressingMode.value];
 			case "extended":
-				return [0xf7, addressingMode.value];
+				return [
+					0xf7,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0xd7,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xf7,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -1862,7 +2916,18 @@ function tst(keyword, value, modifier) {
 			case "indexed":
 				return [0x6d, addressingMode.value];
 			case "extended":
-				return [0x7d, addressingMode.value];
+				return [
+					0x7d,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//it is a extended label
+				return [
+					0x7d,
+					{ errorLine: null, label: addressingMode.value, type: "extended" },
+					"00",
+				];
 			default:
 				return null;
 		}
@@ -1888,7 +2953,22 @@ function sts(keyword, value, modifier) {
 			case "indexed":
 				return [0xaf, addressingMode.value];
 			case "extended":
-				return [0xbf, addressingMode.value];
+				return [
+					0xbf,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0x9f,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xbf,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -1914,7 +2994,22 @@ function stx(keyword, value, modifier) {
 			case "indexed":
 				return [0xef, addressingMode.value];
 			case "extended":
-				return [0xff, addressingMode.value];
+				return [
+					0xff,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//we assume it is direct adn if so prove otherwise
+				return [
+					0xdf,
+					{
+						errorLine: null,
+						label: addressingMode.value,
+						extendedOpCode: 0xff,
+						type: "extended_or_direct_label",
+					},
+				];
 			default:
 				return null;
 		}
@@ -1938,7 +3033,18 @@ function jmp(keyword, value, modifier) {
 			case "indexed":
 				return [0x6e, addressingMode.value];
 			case "extended":
-				return [0x7e, addressingMode.value];
+				return [
+					0x7e,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//it is a extended label
+				return [
+					0x7e,
+					{ errorLine: null, label: addressingMode.value, type: "extended" },
+					"00",
+				];
 			default:
 				return null;
 		}
@@ -1962,7 +3068,18 @@ function jsr(keyword, value, modifier) {
 			case "indexed":
 				return [0xad, addressingMode.value];
 			case "extended":
-				return [0xbd, addressingMode.value];
+				return [
+					0xbd,
+					addressingMode.value.toString(16).padStart(4, "0").slice(0, 2),
+					addressingMode.value.toString(16).padStart(4, "0").slice(2),
+				];
+			case "extended_or_direct_label":
+				//it is a extended label
+				return [
+					0xbd,
+					{ errorLine: null, label: addressingMode.value, type: "extended" },
+					"00",
+				];
 			default:
 				return null;
 		}
@@ -2251,4 +3368,4 @@ function bsr(keyword, value, modifier) {
 instructionSheetScript.set("bsr", bsr);
 
 // export the map
-export default instructionSheetScript;
+export { instructionSheetScript, assemblerDirectiveScript };
