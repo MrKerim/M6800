@@ -1257,7 +1257,7 @@ function checkAddressingMode(value, modifier) {
 		if (value[1] === "$") {
 			//hexadecimal
 			if (isNaN(parseInt(value.slice(2), 16))) return null;
-			else if (parseInt(value.slice(2), 16) > 0xff) return null;
+			else if (parseInt(value.slice(2), 16) > 0xffff) return null;
 			else
 				return {
 					addressingMode: "immediate",
@@ -1267,7 +1267,7 @@ function checkAddressingMode(value, modifier) {
 		if (value[1] === "%") {
 			//binary
 			if (isNaN(parseInt(value.slice(2), 2))) return null;
-			else if (parseInt(value.slice(2), 2) > 0xff) return null;
+			else if (parseInt(value.slice(2), 2) > 0xffff) return null;
 			else
 				return {
 					addressingMode: "immediate",
@@ -1282,7 +1282,7 @@ function checkAddressingMode(value, modifier) {
 				addressingMode: "immediate",
 				value: value.slice(1),
 			};
-		} else if (parseInt(value.slice(1)) > 0xff) return null;
+		} else if (parseInt(value.slice(1)) > 0xffff) return null;
 		else
 			return { addressingMode: "immediate", value: parseInt(value.slice(1)) };
 	}
@@ -1355,6 +1355,7 @@ function adca(keyword, value, modifier) {
 						{ errorLine: null, label: addressingMode.value, type: "immediate" },
 					];
 				}
+				if (addressingMode.value > 0xff) return null;
 				return [0x89, addressingMode.value];
 			case "direct":
 				return [0x99, addressingMode.value];
@@ -1404,6 +1405,7 @@ function adcb(keyword, value, modifier) {
 						{ errorLine: null, label: addressingMode.value, type: "immediate" },
 					];
 				}
+				if (addressingMode.value > 0xff) return null;
 				return [0xc9, addressingMode.value];
 			case "direct":
 				return [0xd9, addressingMode.value];
@@ -1453,6 +1455,7 @@ function adda(keyword, value, modifier) {
 						{ errorLine: null, label: addressingMode.value, type: "immediate" },
 					];
 				}
+				if (addressingMode.value > 0xff) return null;
 				return [0x8b, addressingMode.value];
 			case "direct":
 				return [0x9b, addressingMode.value];
@@ -1502,6 +1505,7 @@ function addb(keyword, value, modifier) {
 						{ errorLine: null, label: addressingMode.value, type: "immediate" },
 					];
 				}
+				if (addressingMode.value > 0xff) return null;
 				return [0xcb, addressingMode.value];
 			case "direct":
 				return [0xdb, addressingMode.value];
@@ -1551,6 +1555,7 @@ function anda(keyword, value, modifier) {
 						{ errorLine: null, label: addressingMode.value, type: "immediate" },
 					];
 				}
+				if (addressingMode.value > 0xff) return null;
 				return [0x84, addressingMode.value];
 			case "direct":
 				return [0x94, addressingMode.value];
@@ -1600,6 +1605,7 @@ function andb(keyword, value, modifier) {
 						{ errorLine: null, label: addressingMode.value, type: "immediate" },
 					];
 				}
+				if (addressingMode.value > 0xff) return null;
 				return [0xc4, addressingMode.value];
 			case "direct":
 				return [0xd4, addressingMode.value];
@@ -1649,6 +1655,7 @@ function bita(keyword, value, modifier) {
 						{ errorLine: null, label: addressingMode.value, type: "immediate" },
 					];
 				}
+				if (addressingMode.value > 0xff) return null;
 				return [0x85, addressingMode.value];
 			case "direct":
 				return [0x95, addressingMode.value];
@@ -1698,6 +1705,7 @@ function bitb(keyword, value, modifier) {
 						{ errorLine: null, label: addressingMode.value, type: "immediate" },
 					];
 				}
+				if (addressingMode.value > 0xff) return null;
 				return [0xc5, addressingMode.value];
 			case "direct":
 				return [0xd5, addressingMode.value];
@@ -1747,6 +1755,7 @@ function cmpa(keyword, value, modifier) {
 						{ errorLine: null, label: addressingMode.value, type: "immediate" },
 					];
 				}
+				if (addressingMode.value > 0xff) return null;
 				return [0x81, addressingMode.value];
 			case "direct":
 				return [0x91, addressingMode.value];
@@ -1796,6 +1805,7 @@ function cmpb(keyword, value, modifier) {
 						{ errorLine: null, label: addressingMode.value, type: "immediate" },
 					];
 				}
+				if (addressingMode.value > 0xff) return null;
 				return [0xc1, addressingMode.value];
 			case "direct":
 				return [0xd1, addressingMode.value];
@@ -1845,6 +1855,7 @@ function eora(keyword, value, modifier) {
 						{ errorLine: null, label: addressingMode.value, type: "immediate" },
 					];
 				}
+				if (addressingMode.value > 0xff) return null;
 				return [0x88, addressingMode.value];
 			case "direct":
 				return [0x98, addressingMode.value];
@@ -1894,6 +1905,7 @@ function eorb(keyword, value, modifier) {
 						{ errorLine: null, label: addressingMode.value, type: "immediate" },
 					];
 				}
+				if (addressingMode.value > 0xff) return null;
 				return [0xc8, addressingMode.value];
 			case "direct":
 				return [0xd8, addressingMode.value];
@@ -1943,6 +1955,7 @@ function ldaa(keyword, value, modifier) {
 						{ errorLine: null, label: addressingMode.value, type: "immediate" },
 					];
 				}
+				if (addressingMode.value > 0xff) return null;
 				return [0x86, addressingMode.value];
 			case "direct":
 				return [0x96, addressingMode.value];
@@ -1992,6 +2005,7 @@ function ldab(keyword, value, modifier) {
 						{ errorLine: null, label: addressingMode.value, type: "immediate" },
 					];
 				}
+				if (addressingMode.value > 0xff) return null;
 				return [0xc6, addressingMode.value];
 			case "direct":
 				return [0xd6, addressingMode.value];
@@ -2041,6 +2055,7 @@ function oraa(keyword, value, modifier) {
 						{ errorLine: null, label: addressingMode.value, type: "immediate" },
 					];
 				}
+				if (addressingMode.value > 0xff) return null;
 				return [0x8a, addressingMode.value];
 			case "direct":
 				return [0x9a, addressingMode.value];
@@ -2090,6 +2105,7 @@ function orab(keyword, value, modifier) {
 						{ errorLine: null, label: addressingMode.value, type: "immediate" },
 					];
 				}
+				if (addressingMode.value > 0xff) return null;
 				return [0xca, addressingMode.value];
 			case "direct":
 				return [0xda, addressingMode.value];
@@ -2139,6 +2155,7 @@ function sbca(keyword, value, modifier) {
 						{ errorLine: null, label: addressingMode.value, type: "immediate" },
 					];
 				}
+				if (addressingMode.value > 0xff) return null;
 				return [0x82, addressingMode.value];
 			case "direct":
 				return [0x92, addressingMode.value];
@@ -2188,6 +2205,7 @@ function sbcb(keyword, value, modifier) {
 						{ errorLine: null, label: addressingMode.value, type: "immediate" },
 					];
 				}
+				if (addressingMode.value > 0xff) return null;
 				return [0xc2, addressingMode.value];
 			case "direct":
 				return [0xd2, addressingMode.value];
@@ -2237,6 +2255,7 @@ function suba(keyword, value, modifier) {
 						{ errorLine: null, label: addressingMode.value, type: "immediate" },
 					];
 				}
+				if (addressingMode.value > 0xff) return null;
 				return [0x80, addressingMode.value];
 			case "direct":
 				return [0x90, addressingMode.value];
@@ -2286,6 +2305,7 @@ function subb(keyword, value, modifier) {
 						{ errorLine: null, label: addressingMode.value, type: "immediate" },
 					];
 				}
+				if (addressingMode.value > 0xff) return null;
 				return [0xc0, addressingMode.value];
 			case "direct":
 				return [0xd0, addressingMode.value];
@@ -2332,10 +2352,15 @@ function cpx(keyword, value, modifier) {
 				if (isNaN(addressingMode.value)) {
 					return [
 						0x8c,
-						{ errorLine: null, label: addressingMode.value, type: "immediate" },
+						{
+							errorLine: null,
+							label: addressingMode.value,
+							type: "immediate2",
+						},
+						0x00,
 					];
 				}
-				return [0x8c, addressingMode.value];
+				return [0x8c, addressingMode.value >> 8, addressingMode.value & 0xff];
 			case "direct":
 				return [0x9c, addressingMode.value];
 			case "indexed":
@@ -2381,10 +2406,15 @@ function lds(keyword, value, modifier) {
 				if (isNaN(addressingMode.value)) {
 					return [
 						0x8e,
-						{ errorLine: null, label: addressingMode.value, type: "immediate" },
+						{
+							errorLine: null,
+							label: addressingMode.value,
+							type: "immediate2",
+						},
+						0x00,
 					];
 				}
-				return [0x8e, addressingMode.value];
+				return [0x8e, addressingMode.value >> 8, addressingMode.value & 0xff];
 			case "direct":
 				return [0x9e, addressingMode.value];
 			case "indexed":
@@ -2430,10 +2460,15 @@ function ldx(keyword, value, modifier) {
 				if (isNaN(addressingMode.value)) {
 					return [
 						0xce,
-						{ errorLine: null, label: addressingMode.value, type: "immediate" },
+						{
+							errorLine: null,
+							label: addressingMode.value,
+							type: "immediate2",
+						},
+						0x00,
 					];
 				}
-				return [0xce, addressingMode.value];
+				return [0xce, addressingMode.value >> 8, addressingMode.value & 0xff];
 			case "direct":
 				return [0xde, addressingMode.value];
 			case "indexed":

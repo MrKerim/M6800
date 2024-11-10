@@ -110,7 +110,6 @@ function App() {
 					labels
 				);
 				if (!result) {
-					console.log("errodasdasd");
 					setErrorOnLine(index + 1);
 					return;
 				}
@@ -184,6 +183,9 @@ function App() {
 					if (instruction?.type !== undefined) {
 						if (instruction.type === "immediate") {
 							tempMemory[PCindex] = labels.get(insLabel);
+						} else if (instruction.type === "immediate2") {
+							tempMemory[PCindex] = labels.get(insLabel) >> 8;
+							tempMemory[PCindex + 1] = labels.get(insLabel) & 0xff;
 						} else if (instruction.type === "extended_or_direct_label") {
 							const labelVal = labels.get(insLabel);
 							if (labelVal < 0x100) {
