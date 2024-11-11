@@ -1,5 +1,6 @@
 const instructionSheetScript = new Map();
 const assemblerDirectiveScript = new Map();
+const assemblyCompiler = new Map();
 
 assemblerDirectiveScript.set(".end", 1);
 // special case handled in the main function
@@ -417,19 +418,32 @@ function str(label, directive, operand, modifier, pC, tempMemory, labels) {
 assemblerDirectiveScript.set(".str", str);
 
 /*
+-- -----------------------
+-- -----------------------
+*/
+
+/*
 ABA - AccA + AccB -> AccA
     Inherent
     1B
 
     Condition Code:
     H | I | N | Z | V | C
-    ~ | * | ~ | ~ | ~ | ~      
+    ~ | * | ~ | ~ | ~ | ~   
 */
 function aba(keyword, value, modifier) {
 	if (modifier || value) return null;
 	else return [0x1b];
 }
 instructionSheetScript.set("aba", aba);
+
+// Assembler
+function abaE(pC, accA, accB, memory, stackPointer, xRegister, statusFlags) {}
+
+/*
+-- -----------------------
+-- -----------------------
+*/
 
 /*
 ASLA - AccA << 1 -> AccA

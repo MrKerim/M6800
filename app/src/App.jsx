@@ -13,10 +13,11 @@ function App() {
 	const [programMemory, setProgramMemory] = useState(
 		new Array(0x10000).fill(0)
 	);
-	const [AccumulatorA, setAccumulatorA] = useState(0);
-	const [AccumulatorB, setAccumulatorB] = useState(0);
-	const [XRegister, setXRegister] = useState(0);
+	const [accumulatorA, setAccumulatorA] = useState(0);
+	const [accumulatorB, setAccumulatorB] = useState(0);
+	const [xRegister, setXRegister] = useState(0);
 	const [stackPointer, setStackPointer] = useState(0);
+	const [statusFlags, setStatusFlags] = useState([0, 0, 0, 0, 0, 0]);
 	const [scrollPosition, setScrollPosition] = useState(0);
 	const [buildSuccess, setBuildSuccess] = useState(false);
 
@@ -354,7 +355,16 @@ function App() {
 					</div>
 
 					<div>
-						<MemoryDisplay memory={programMemory} />
+						<MemoryDisplay
+							memory={programMemory}
+							accumulatorA={accumulatorA}
+							accumulatorB={accumulatorB}
+							stackPointer={stackPointer}
+							xRegister={xRegister}
+							statusFlags={statusFlags}
+							programCounter={programCounter}
+							buildSuccess={buildSuccess}
+						/>
 					</div>
 				</div>
 			</div>
