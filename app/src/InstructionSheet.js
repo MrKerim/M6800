@@ -8416,6 +8416,91 @@ function stx(keyword, value, modifier) {
 }
 instructionSheetScript.set("stx", stx);
 
+// Assembler
+
+//Direct - 0xdf
+
+function stxEd(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	memory[memory[pC + 1]] = xReg >> 8;
+	memory[memory[pC + 1] + 1] = xReg & 0xff;
+
+	const flags = {
+		H: statFlags.H, // Unchanged
+		I: statFlags.I, // Unchanged
+		N: (xReg >> 8) & (0x80 !== 0),
+		Z: xReg === 0,
+		V: false,
+		C: statFlags.C, // Unchanged
+	};
+
+	return {
+		pC: pC + 2,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags: flags,
+	};
+}
+assemblyCompiler.set(0xdf, stxEd);
+
+//Indexed - 0xef
+
+function stxEin(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const address = xReg + memory[pC + 1];
+	memory[address] = xReg >> 8;
+	memory[address + 1] = xReg & 0xff;
+
+	const flags = {
+		H: statFlags.H, // Unchanged
+		I: statFlags.I, // Unchanged
+		N: (xReg >> 8) & (0x80 !== 0),
+		Z: xReg === 0,
+		V: false,
+		C: statFlags.C, // Unchanged
+	};
+
+	return {
+		pC: pC + 2,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags: flags,
+	};
+}
+assemblyCompiler.set(0xef, stxEin);
+
+//Extended - 0xff
+
+function stxEex(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const address = (memory[pC + 1] << 8) | memory[pC + 2];
+	memory[address] = xReg >> 8;
+	memory[address + 1] = xReg & 0xff;
+
+	const flags = {
+		H: statFlags.H, // Unchanged
+		I: statFlags.I, // Unchanged
+		N: (xReg >> 8) & (0x80 !== 0),
+		Z: xReg === 0,
+		V: false,
+		C: statFlags.C, // Unchanged
+	};
+
+	return {
+		pC: pC + 2,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags: flags,
+	};
+}
+assemblyCompiler.set(0xff, stxEex);
+
 /*
 -- -----------------------
 -- -----------------------
@@ -8456,6 +8541,47 @@ function jmp(keyword, value, modifier) {
 }
 instructionSheetScript.set("jmp", jmp);
 
+// Assembler
+
+//Indexed - 0x6e
+
+function jmpEin(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const address = xReg + memory[pC + 1];
+
+	return {
+		pC: address,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags,
+	};
+}
+assemblyCompiler.set(0x6e, jmpEin);
+
+//Extended - 0x7e
+
+function jmpEex(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const address = (memory[pC + 1] << 8) | memory[pC + 2];
+
+	return {
+		pC: address,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags,
+	};
+}
+assemblyCompiler.set(0x7e, jmpEex);
+
+/*
+-- -----------------------
+-- -----------------------
+*/
+
 /*
 JSR VARIABLE - jumpt to subroutine
     INDEXED | EXTENDED 
@@ -8491,6 +8617,55 @@ function jsr(keyword, value, modifier) {
 }
 instructionSheetScript.set("jsr", jsr);
 
+// Assembler
+
+//Indexed - 0xad
+
+function jsrEin(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const address = xReg + memory[pC + 1];
+	const returnAddress = pC + 2;
+
+	memory[stackP] = returnAddress >> 8;
+	memory[stackP - 1] = returnAddress & 0xff;
+
+	return {
+		pC: address,
+		accA,
+		accB,
+		memory,
+		stackP: stackP - 2,
+		xReg,
+		statFlags,
+	};
+}
+assemblyCompiler.set(0xad, jsrEin);
+
+//Extended - 0xbd
+
+function jsrEex(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const address = (memory[pC + 1] << 8) | memory[pC + 2];
+	const returnAddress = pC + 3;
+
+	memory[stackP] = returnAddress >> 8;
+	memory[stackP - 1] = returnAddress & 0xff;
+
+	return {
+		pC: address,
+		accA,
+		accB,
+		memory,
+		stackP: stackP - 2,
+		xReg,
+		statFlags,
+	};
+}
+assemblyCompiler.set(0xbd, jsrEex);
+
+/*
+-- -----------------------
+-- -----------------------
+*/
+
 /*
 -------------------------
 # Below functions are take use of relative addresing mode
@@ -8509,6 +8684,24 @@ however if there is a modifier it will return null
 -------------------------
 */
 
+function isLabel(label) {
+	const regex = /^[A-Za-z][A-Za-z0-9_]*$/;
+	return regex.test(label);
+}
+
+function twosComplementToInt(value) {
+	if (value & 0x80) {
+		return value - 0x100;
+	} else {
+		return value;
+	}
+}
+
+/*
+-- -----------------------
+-- -----------------------
+*/
+
 /*
 BCS LABEL - Branch if carry set
     RELATIVE 
@@ -8519,17 +8712,37 @@ BCS LABEL - Branch if carry set
     * | * | * | * | * | *
 */
 
-function isLabel(label) {
-	const regex = /^[A-Za-z][A-Za-z0-9_]*$/;
-	return regex.test(label);
-}
-
 function bcs(keyword, value, modifier) {
 	if (modifier) return null;
 	if (!isLabel(value)) return null;
 	return [0x25, { label: value, errorLine: null }];
 }
 instructionSheetScript.set("bcs", bcs);
+
+// Assembler
+
+//Relative - 0x25
+
+function bcsRel(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const offset = statFlags.C ? twosComplementToInt(memory[pC + 1]) : 0;
+	const address = pC + offset + 2;
+
+	return {
+		pC: address,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags,
+	};
+}
+assemblyCompiler.set(0x25, bcsRel);
+
+/*
+-- -----------------------
+-- -----------------------
+*/
 
 /*
 BCC LABEL - Branch if carry clear
@@ -8547,6 +8760,31 @@ function bcc(keyword, value, modifier) {
 }
 instructionSheetScript.set("bcc", bcc);
 
+// Assembler
+
+//Relative - 0x24
+
+function bccRel(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const offset = !statFlags.C ? twosComplementToInt(memory[pC + 1]) : 0;
+	const address = pC + offset + 2;
+
+	return {
+		pC: address,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags,
+	};
+}
+assemblyCompiler.set(0x24, bccRel);
+
+/*
+-- -----------------------
+-- -----------------------
+*/
+
 /*
 BMI LABEL - Branch if minus
     RELATIVE 
@@ -8562,6 +8800,31 @@ function bmi(keyword, value, modifier) {
 	return [0x2b, { label: value, errorLine: null }];
 }
 instructionSheetScript.set("bmi", bmi);
+
+// Assembler
+
+//Relative - 0x2B
+
+function bmiRel(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const offset = statFlags.N ? twosComplementToInt(memory[pC + 1]) : 0;
+	let address = pC + offset + 2;
+
+	return {
+		pC: address,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags,
+	};
+}
+assemblyCompiler.set(0x2b, bmiRel);
+
+/*
+-- -----------------------
+-- -----------------------
+*/
 
 /*
 BPL LABEL - Branch if plus
@@ -8579,6 +8842,31 @@ function bpl(keyword, value, modifier) {
 }
 instructionSheetScript.set("bpl", bpl);
 
+// Assembler
+
+//Relative - 0x2A
+
+function bplRel(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const offset = !statFlags.N ? twosComplementToInt(memory[pC + 1]) : 0;
+	let address = pC + offset + 2;
+
+	return {
+		pC: address,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags,
+	};
+}
+assemblyCompiler.set(0x2a, bplRel);
+
+/*
+-- -----------------------
+-- -----------------------
+*/
+
 /*
 BVS LABEL - Branch if overflow set
     RELATIVE 
@@ -8594,6 +8882,31 @@ function bvs(keyword, value, modifier) {
 	return [0x29, { label: value, errorLine: null }];
 }
 instructionSheetScript.set("bvs", bvs);
+
+// Assembler
+
+//Relative - 0x29
+
+function bvsRel(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const offset = statFlags.V ? twosComplementToInt(memory[pC + 1]) : 0;
+	let address = pC + offset + 2;
+
+	return {
+		pC: address,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags,
+	};
+}
+assemblyCompiler.set(0x29, bvsRel);
+
+/*
+-- -----------------------
+-- -----------------------
+*/
 
 /*
 BVC LABEL - Branch if overflow clear
@@ -8611,6 +8924,31 @@ function bvc(keyword, value, modifier) {
 }
 instructionSheetScript.set("bvc", bvc);
 
+// Assembler
+
+//Relative - 0x28
+
+function bvcRel(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const offset = !statFlags.V ? twosComplementToInt(memory[pC + 1]) : 0;
+	let address = pC + offset + 2;
+
+	return {
+		pC: address,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags,
+	};
+}
+assemblyCompiler.set(0x28, bvcRel);
+
+/*
+-- -----------------------
+-- -----------------------
+*/
+
 /*
 BEQ LABEL - Branch if equal
     RELATIVE 
@@ -8626,6 +8964,31 @@ function beq(keyword, value, modifier) {
 	return [0x27, { label: value, errorLine: null }];
 }
 instructionSheetScript.set("beq", beq);
+
+// Assembler
+
+//Relative - 0x27
+
+function beqRel(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const offset = statFlags.Z ? twosComplementToInt(memory[pC + 1]) : 0;
+	let address = pC + offset + 2;
+
+	return {
+		pC: address,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags,
+	};
+}
+assemblyCompiler.set(0x27, beqRel);
+
+/*
+-- -----------------------
+-- -----------------------
+*/
 
 /*
 BNE LABEL - Branch if not equal
@@ -8643,6 +9006,31 @@ function bne(keyword, value, modifier) {
 }
 instructionSheetScript.set("bne", bne);
 
+// Assembler
+
+//Relative - 0x26
+
+function bneRel(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const offset = !statFlags.Z ? twosComplementToInt(memory[pC + 1]) : 0;
+	let address = pC + offset + 2;
+
+	return {
+		pC: address,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags,
+	};
+}
+assemblyCompiler.set(0x26, bneRel);
+
+/*
+-- -----------------------
+-- -----------------------
+*/
+
 /*
 BLT LABEL - N ^ V = 1
     RELATIVE 
@@ -8658,6 +9046,32 @@ function blt(keyword, value, modifier) {
 	return [0x2d, { label: value, errorLine: null }];
 }
 instructionSheetScript.set("blt", blt);
+
+// Assembler
+
+//Relative - 0x2d
+
+function bltRel(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const offset =
+		statFlags.N ^ statFlags.V ? twosComplementToInt(memory[pC + 1]) : 0;
+	let address = pC + offset + 2;
+
+	return {
+		pC: address,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags,
+	};
+}
+assemblyCompiler.set(0x2d, bltRel);
+
+/*
+-- -----------------------
+-- -----------------------
+*/
 
 /*
 BLE LABEL - Z + (N ^ V) = 1
@@ -8675,6 +9089,32 @@ function ble(keyword, value, modifier) {
 }
 instructionSheetScript.set("ble", ble);
 
+// Assembler
+
+//Relative - 0x2f
+
+function bleRel(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const offset =
+		Z | (statFlags.N ^ statFlags.V) ? twosComplementToInt(memory[pC + 1]) : 0;
+	let address = pC + offset + 2;
+
+	return {
+		pC: address,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags,
+	};
+}
+assemblyCompiler.set(0x2f, bleRel);
+
+/*
+-- -----------------------
+-- -----------------------
+*/
+
 /*
 BGE LABEL - N ^ V = 0
     RELATIVE 
@@ -8690,6 +9130,33 @@ function bge(keyword, value, modifier) {
 	return [0x2c, { label: value, errorLine: null }];
 }
 instructionSheetScript.set("bge", bge);
+
+// Assembler
+
+//Relative - 0x2c
+
+function bgeRel(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const offset = !(statFlags.N ^ statFlags.V)
+		? twosComplementToInt(memory[pC + 1])
+		: 0;
+	let address = pC + offset + 2;
+
+	return {
+		pC: address,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags,
+	};
+}
+assemblyCompiler.set(0x2c, bgeRel);
+
+/*
+-- -----------------------
+-- -----------------------
+*/
 
 /*
 BGT LABEL - Z + (N ^ V) = 0
@@ -8707,6 +9174,33 @@ function bgt(keyword, value, modifier) {
 }
 instructionSheetScript.set("bgt", bgt);
 
+// Assembler
+
+//Relative - 0x2e
+
+function bgtRel(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const offset = !(Z | (statFlags.N ^ statFlags.V))
+		? twosComplementToInt(memory[pC + 1])
+		: 0;
+	let address = pC + offset + 2;
+
+	return {
+		pC: address,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags,
+	};
+}
+assemblyCompiler.set(0x2e, bgtRel);
+
+/*
+-- -----------------------
+-- -----------------------
+*/
+
 /*
 BLS LABEL - C + Z = 1
     RELATIVE 
@@ -8722,6 +9216,32 @@ function bls(keyword, value, modifier) {
 	return [0x23, { label: value, errorLine: null }];
 }
 instructionSheetScript.set("bls", bls);
+
+// Assembler
+
+//Relative - 0x23
+
+function blsRel(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const offset =
+		statFlags.C | statFlags.Z ? twosComplementToInt(memory[pC + 1]) : 0;
+	let address = pC + offset + 2;
+
+	return {
+		pC: address,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags,
+	};
+}
+assemblyCompiler.set(0x23, blsRel);
+
+/*
+-- -----------------------
+-- -----------------------
+*/
 
 /*
 BHI LABEL - C + Z = 0
@@ -8739,6 +9259,33 @@ function bhi(keyword, value, modifier) {
 }
 instructionSheetScript.set("bhi", bhi);
 
+// Assembler
+
+//Relative - 0x22
+
+function bhiRel(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const offset = !(statFlags.C | statFlags.Z)
+		? twosComplementToInt(memory[pC + 1])
+		: 0;
+	let address = pC + offset + 2;
+
+	return {
+		pC: address,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags,
+	};
+}
+assemblyCompiler.set(0x22, bhiRel);
+
+/*
+-- -----------------------
+-- -----------------------
+*/
+
 /*
 BRA LABEL - Branch always
     RELATIVE 
@@ -8755,6 +9302,31 @@ function bra(keyword, value, modifier) {
 }
 instructionSheetScript.set("bra", bra);
 
+// Assembler
+
+//Relative - 0x20
+
+function braRel(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const offset = twosComplementToInt(memory[pC + 1]);
+	let address = pC + offset + 2;
+
+	return {
+		pC: address,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags,
+	};
+}
+assemblyCompiler.set(0x20, braRel);
+
+/*
+-- -----------------------
+-- -----------------------
+*/
+
 /*
 BSR LABEL - Branch to subroutine
     RELATIVE 
@@ -8770,6 +9342,36 @@ function bsr(keyword, value, modifier) {
 	return [0x8d, { label: value, errorLine: null }];
 }
 instructionSheetScript.set("bsr", bsr);
+
+// Assembler
+
+//Relative - 0x8d
+
+function bsrRel(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const offset = twosComplementToInt(memory[pC + 1]);
+	const returnAddress = pC + 2;
+
+	memory[stackP] = returnAddress >> 8;
+	memory[stackP - 1] = returnAddress & 0xff;
+
+	let address = pC + offset + 2;
+
+	return {
+		pC: address,
+		accA,
+		accB,
+		memory,
+		stackP: stackP - 2,
+		xReg,
+		statFlags,
+	};
+}
+assemblyCompiler.set(0x8d, bsrRel);
+
+/*
+-- -----------------------
+-- -----------------------
+*/
 
 // export the map
 export { instructionSheetScript, assemblerDirectiveScript, assemblyCompiler };
