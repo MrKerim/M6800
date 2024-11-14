@@ -8,7 +8,7 @@ export default function ConsoleComp({
 			{buildSuccess ? (
 				<>
 					{errorOpCode ? (
-						<h1 className="text-red-500">{errorOpCode}</h1>
+						<h1 className="text-red-500">{errorOpCode.toString(16)}</h1>
 					) : (
 						<h1 className="text-green-500">Assembling the program...</h1>
 					)}
