@@ -68,6 +68,12 @@ function App() {
 	function handleCompileMemoryStep() {
 		const opCode = programMemory[programCounter % 0x10000];
 
+		// If the opCode is 0 then we increment the program counter and return
+		if (opCode === 0) {
+			setProgramCounter((prev) => prev + 1);
+			return;
+		}
+
 		let pC = programCounter;
 		let accA = accumulatorA;
 		let accB = accumulatorB;
