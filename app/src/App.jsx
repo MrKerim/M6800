@@ -393,103 +393,105 @@ function App() {
 	}
 
 	return (
-		<div>
-			<>
-				{scrollPosition === 0 ? (
-					<div
-						onClick={() => {
-							window.scrollTo({
-								top: 620, // Current scroll position + 600px
-								behavior: "smooth", // Optional: adds smooth scrolling
-							});
-						}}
-						className=" lg:hidden z-10 fixed bottom-14 right-8 text-black  p-4 rounded-full  bg-white bg-opacity-30"
-					>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							fill="none"
-							viewBox="0 0 24 24"
-							strokeWidth={2}
-							stroke="currentColor"
-							className="size-10"
+		<div className="min-h-screen flex flex-col">
+			<div className="flex-grow">
+				<>
+					{scrollPosition === 0 ? (
+						<div
+							onClick={() => {
+								window.scrollTo({
+									top: 620, // Current scroll position + 600px
+									behavior: "smooth", // Optional: adds smooth scrolling
+								});
+							}}
+							className=" lg:hidden z-10 fixed bottom-14 right-8 text-black  p-4 rounded-full  bg-white bg-opacity-30"
 						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								d="m4.5 5.25 7.5 7.5 7.5-7.5m-15 6 7.5 7.5 7.5-7.5"
-							/>
-						</svg>
-					</div>
-				) : (
-					<div
-						onClick={() => {
-							window.scrollTo({
-								top: 0, // Current scroll position + 600px
-								behavior: "smooth", // Optional: adds smooth scrolling
-							});
-						}}
-						className=" lg:hidden z-10 fixed bottom-14 right-8 text-black  p-4 rounded-full  bg-white bg-opacity-30"
-					>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							fill="none"
-							viewBox="0 0 24 24"
-							strokeWidth={2}
-							stroke="currentColor"
-							className="size-10"
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								fill="none"
+								viewBox="0 0 24 24"
+								strokeWidth={2}
+								stroke="currentColor"
+								className="size-10"
+							>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									d="m4.5 5.25 7.5 7.5 7.5-7.5m-15 6 7.5 7.5 7.5-7.5"
+								/>
+							</svg>
+						</div>
+					) : (
+						<div
+							onClick={() => {
+								window.scrollTo({
+									top: 0, // Current scroll position + 600px
+									behavior: "smooth", // Optional: adds smooth scrolling
+								});
+							}}
+							className=" lg:hidden z-10 fixed bottom-14 right-8 text-black  p-4 rounded-full  bg-white bg-opacity-30"
 						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								d="m4.5 18.75 7.5-7.5 7.5 7.5"
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								fill="none"
+								viewBox="0 0 24 24"
+								strokeWidth={2}
+								stroke="currentColor"
+								className="size-10"
+							>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									d="m4.5 18.75 7.5-7.5 7.5 7.5"
+								/>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									d="m4.5 12.75 7.5-7.5 7.5 7.5"
+								/>
+							</svg>
+						</div>
+					)}
+				</>
+				<div className="fixed top-0 left-0 w-full -z-10 bg-[#171920] h-full"></div>
+				<div className="bg-[#171920]  h-full pb-64 lg:pb-12">
+					<div className="mt-8 lg:grid lg:grid-cols-2 lg:gap-2">
+						<div>
+							<CodeEditor
+								setRawCode={setRawCode}
+								errorOnLine={errorOnLine}
+								setErrorOnLine={setErrorOnLine}
+								buildSuccess={buildSuccess}
+								setBuildSuccess={setBuildSuccess}
+								build={build}
+								setBuild={setBuild}
+								stepClicked={stepClicked}
+								setStepClicked={setStepClicked}
+								setErrorOpCode={setErrorOpCode}
+								runClicked={runClicked}
+								setRunClicked={setRunClicked}
+								togglePassZeros={togglePassZeros}
+								setTogglePassZeros={setTogglePassZeros}
 							/>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								d="m4.5 12.75 7.5-7.5 7.5 7.5"
+							<ConsoleComp
+								buildSuccess={buildSuccess}
+								errorOnLine={errorOnLine}
+								errorOpCode={errorOpCode}
 							/>
-						</svg>
-					</div>
-				)}
-			</>
-			<div className="fixed top-0 left-0 w-full -z-10 bg-[#171920] h-full"></div>
-			<div className="bg-[#171920]  h-full pb-64 lg:pb-12">
-				<div className="mt-8 lg:grid lg:grid-cols-2 lg:gap-2">
-					<div>
-						<CodeEditor
-							setRawCode={setRawCode}
-							errorOnLine={errorOnLine}
-							setErrorOnLine={setErrorOnLine}
-							buildSuccess={buildSuccess}
-							setBuildSuccess={setBuildSuccess}
-							build={build}
-							setBuild={setBuild}
-							stepClicked={stepClicked}
-							setStepClicked={setStepClicked}
-							setErrorOpCode={setErrorOpCode}
-							runClicked={runClicked}
-							setRunClicked={setRunClicked}
-							togglePassZeros={togglePassZeros}
-							setTogglePassZeros={setTogglePassZeros}
-						/>
-						<ConsoleComp
-							buildSuccess={buildSuccess}
-							errorOnLine={errorOnLine}
-							errorOpCode={errorOpCode}
-						/>
-					</div>
+						</div>
 
-					<div>
-						<MemoryDisplay
-							memory={programMemory}
-							accumulatorA={accumulatorA}
-							accumulatorB={accumulatorB}
-							stackPointer={stackPointer}
-							xRegister={xRegister}
-							statusFlags={statusFlags}
-							programCounter={programCounter}
-							buildSuccess={buildSuccess}
-						/>
+						<div>
+							<MemoryDisplay
+								memory={programMemory}
+								accumulatorA={accumulatorA}
+								accumulatorB={accumulatorB}
+								stackPointer={stackPointer}
+								xRegister={xRegister}
+								statusFlags={statusFlags}
+								programCounter={programCounter}
+								buildSuccess={buildSuccess}
+							/>
+						</div>
 					</div>
 				</div>
 			</div>
