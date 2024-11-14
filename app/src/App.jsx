@@ -34,6 +34,8 @@ function App() {
 
 	const [errorOnLine, setErrorOnLine] = useState(null);
 
+	const [errorOpCode, setErrorOpCode] = useState(null);
+
 	const [stepClicked, setStepClicked] = useState(false);
 
 	useEffect(() => {
@@ -66,6 +68,9 @@ function App() {
 	//For compiling the memory
 	//Step
 	function handleCompileMemoryStep() {
+		if (!buildSuccess) return;
+		if (errorOpCode) return;
+
 		const opCode = programMemory[programCounter % 0x10000];
 
 		// If the opCode is 0 then we increment the program counter and return
@@ -108,7 +113,7 @@ function App() {
 
 			console.log("step success");
 		} else {
-			console.log("error");
+			setErrorOpCode("invalid opcode : " + opCode);
 			return;
 		}
 	}
@@ -434,6 +439,7 @@ function App() {
 						<ConsoleComp
 							buildSuccess={buildSuccess}
 							errorOnLine={errorOnLine}
+							errorOpCode={errorOpCode}
 						/>
 					</div>
 

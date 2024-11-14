@@ -81,6 +81,7 @@ const CodeEditor = ({
 	setBuild,
 	stepClicked,
 	setStepClicked,
+	setErrorOpCode,
 }) => {
 	const editorRef = useRef(null); // Create a ref to store the editor instance
 	const [editorContent, setEditorContent] = useState(
@@ -232,6 +233,7 @@ const CodeEditor = ({
 										setBuildingTimeout(true);
 										//independent of the result either errorOnLine or buildSuccess will be changed
 										setRawCode(editorContent);
+										setErrorOpCode(null);
 									}}
 								>
 									<svg
