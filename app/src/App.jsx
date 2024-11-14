@@ -46,9 +46,12 @@ function App() {
 		handleCompileMemoryStep();
 	}, [stepClicked]);
 
+	/*
 	useEffect(() => {
+		console.log("run clicked");
 		handleCompileMemoryRun();
 	}, [runClicked]);
+*/
 
 	//scroll handler
 	useEffect(() => {
@@ -76,6 +79,7 @@ function App() {
 	//For compiling the memory
 	//Step
 	function handleCompileMemoryStep() {
+		console.log("pC: " + programCounter);
 		if (!buildSuccess) return;
 		if (errorOpCode) return;
 
@@ -123,12 +127,6 @@ function App() {
 		} else {
 			setErrorOpCode("invalid opcode : " + opCode);
 			return;
-		}
-	}
-
-	function handleCompileMemoryRun() {
-		while (programCounter < 0x10000) {
-			handleCompileMemoryStep();
 		}
 	}
 
