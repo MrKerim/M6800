@@ -1882,7 +1882,7 @@ instructionSheetScript.set("tab", tab);
 // Assembler
 function tabE(pC, accA, accB, memory, stackP, xReg, statFlags) {
 	// Set flags
-	flags = {
+	const flags = {
 		H: statFlags.H, // Unchanged
 		I: statFlags.I, // Unchanged
 		N: (accA & 0x80) !== 0, // Negative flag, MSB is 1
@@ -1927,7 +1927,7 @@ instructionSheetScript.set("tba", tba);
 
 function tbaE(pC, accA, accB, memory, stackP, xReg, statFlags) {
 	// Set flags
-	flags = {
+	const flags = {
 		H: statFlags.H, // Unchanged
 		I: statFlags.I, // Unchanged
 		N: (accB & 0x80) !== 0, // Negative flag, MSB is 1
@@ -1972,7 +1972,7 @@ instructionSheetScript.set("tsta", tsta);
 
 function tstaE(pC, accA, accB, memory, stackP, xReg, statFlags) {
 	// Set flags
-	flags = {
+	const flags = {
 		H: statFlags.H, // Unchanged
 		I: statFlags.I, // Unchanged
 		N: (accA & 0x80) !== 0, // Negative flag, MSB is 1
@@ -2016,7 +2016,7 @@ instructionSheetScript.set("tstb", tstb);
 // Assembler
 function tstbE(pC, accA, accB, memory, stackP, xReg, statFlags) {
 	// Set flags
-	flags = {
+	const flags = {
 		H: statFlags.H, // Unchanged
 		I: statFlags.I, // Unchanged
 		N: (accB & 0x80) !== 0, // Negative flag, MSB is 1
