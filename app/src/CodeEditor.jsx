@@ -100,6 +100,16 @@ const CodeEditor = ({
 
 	const [buildingTimeout, setBuildingTimeout] = useState(false);
 
+	const [togglePassZerosAlertVisible, setTogglePassZerosAlertVisible] =
+		useState(false);
+
+	useEffect(() => {
+		setTogglePassZerosAlertVisible(true);
+		setTimeout(() => {
+			setTogglePassZerosAlertVisible(false);
+		}, 3000);
+	}, [togglePassZeros]);
+
 	useEffect(() => {
 		if (buildingTimeout) {
 			setBuildingTimeout(false);
@@ -339,6 +349,28 @@ const CodeEditor = ({
 								</svg>
 								STEP
 							</button>
+							<div className="flex items-center">
+								<input
+									type="checkbox"
+									id="passZeros"
+									name="passZeros"
+									checked={togglePassZeros}
+									onChange={() => setTogglePassZeros(!togglePassZeros)}
+								/>
+								<div className="relative group">
+									<h1 className="text-white text-lg mb-4 cursor-pointer">?</h1>
+									<span className="absolute left-6 bottom-0 hidden group-hover:block bg-gray-700 text-white text-sm rounded-md px-2 py-1 whitespace-no-wrap">
+										Pass all zero opCodes on STEP
+									</span>
+								</div>
+								{togglePassZerosAlertVisible && (
+									<div className=" p-20 absolute sm:hidden left-12 bottom-64 bg-gray-700 text-white text-lg rounded-md px-2 py-1 whitespace-no-wrap">
+										{togglePassZeros
+											? "Pass all zero opCodes on STEP"
+											: "Do not pass zero opCodes on STEP"}
+									</div>
+								)}
+							</div>
 						</>
 					)}
 				</div>

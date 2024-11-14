@@ -567,7 +567,7 @@ instructionSheetScript.set("aslb", aslb);
 // Assembler
 
 function aslbE(pC, accA, accB, memory, stackP, xReg, statFlags) {
-	result = accB << 1;
+	const result = accB << 1;
 	const accB_result = result & 0xff;
 	const carry_out = result > 0xff ? 1 : 0;
 

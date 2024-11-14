@@ -7,6 +7,7 @@ import {
 import CodeEditor from "./CodeEditor";
 import MemoryDisplay from "./MemoryDisplay";
 import ConsoleComp from "./ConsoleComp";
+import Footer from "./Footer";
 import "./App.css";
 
 function App() {
@@ -78,20 +79,38 @@ function App() {
 
 	//For compiling the memory
 	//Step
+
+	//helper function for step
+	function handlePassZeros(pC, memory) {
+		let tempPC = pC;
+		const tempMemory = memory;
+		while (tempMemory[tempPC] === 0) {
+			tempPC++;
+		}
+
+		return tempPC;
+	}
+
 	function handleCompileMemoryStep() {
-		console.log("pC: " + programCounter);
 		if (!buildSuccess) return;
 		if (errorOpCode) return;
 
-		const opCode = programMemory[programCounter % 0x10000];
+		let opCode = programMemory[programCounter % 0x10000];
+		let pC = programCounter;
 
 		// If the opCode is 0 then we increment the program counter and return
+		// Also we check if the togglePassZeros is true then we will skip the zeros
 		if (opCode === 0) {
-			setProgramCounter((prev) => prev + 1);
-			return;
+			if (togglePassZeros) {
+				const newPC = handlePassZeros(programCounter, programMemory);
+				setProgramCounter(newPC);
+				return;
+			} else {
+				setProgramCounter((prev) => prev + 1);
+				return;
+			}
 		}
 
-		let pC = programCounter;
 		let accA = accumulatorA;
 		let accB = accumulatorB;
 		let memory = programMemory;
@@ -374,7 +393,7 @@ function App() {
 	}
 
 	return (
-		<>
+		<div>
 			<>
 				{scrollPosition === 0 ? (
 					<div
@@ -434,7 +453,7 @@ function App() {
 				)}
 			</>
 			<div className="fixed top-0 left-0 w-full -z-10 bg-[#171920] h-full"></div>
-			<div className="bg-[#171920]  h-full">
+			<div className="bg-[#171920]  h-full pb-64 lg:pb-12">
 				<div className="mt-8 lg:grid lg:grid-cols-2 lg:gap-2">
 					<div>
 						<CodeEditor
@@ -474,7 +493,8 @@ function App() {
 					</div>
 				</div>
 			</div>
-		</>
+			<Footer />
+		</div>
 	);
 }
 
