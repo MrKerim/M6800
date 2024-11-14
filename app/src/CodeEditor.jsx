@@ -82,6 +82,10 @@ const CodeEditor = ({
 	stepClicked,
 	setStepClicked,
 	setErrorOpCode,
+	runClicked,
+	setRunClicked,
+	togglePassZeros,
+	setTogglePassZeros,
 }) => {
 	const editorRef = useRef(null); // Create a ref to store the editor instance
 	const [editorContent, setEditorContent] = useState(
@@ -296,7 +300,12 @@ const CodeEditor = ({
 								</svg>
 								STOP
 							</button>
-							<button className="bg-green-500  lg:font-light items-center  text-lg p-2  text-white  rounded-md flex gap-2  ">
+							<button
+								onClick={() => {
+									if (buildSuccess) setRunClicked(!runClicked);
+								}}
+								className="bg-green-500  lg:font-light items-center  text-lg p-2  text-white  rounded-md flex gap-2  "
+							>
 								<svg
 									xmlns="http://www.w3.org/2000/svg"
 									fill="currentColor"

@@ -38,9 +38,17 @@ function App() {
 
 	const [stepClicked, setStepClicked] = useState(false);
 
+	const [runClicked, setRunClicked] = useState(false);
+
+	const [togglePassZeros, setTogglePassZeros] = useState(false);
+
 	useEffect(() => {
 		handleCompileMemoryStep();
 	}, [stepClicked]);
+
+	useEffect(() => {
+		handleCompileMemoryRun();
+	}, [runClicked]);
 
 	//scroll handler
 	useEffect(() => {
@@ -115,6 +123,12 @@ function App() {
 		} else {
 			setErrorOpCode("invalid opcode : " + opCode);
 			return;
+		}
+	}
+
+	function handleCompileMemoryRun() {
+		while (programCounter < 0x10000) {
+			handleCompileMemoryStep();
 		}
 	}
 
@@ -435,6 +449,11 @@ function App() {
 							setBuild={setBuild}
 							stepClicked={stepClicked}
 							setStepClicked={setStepClicked}
+							setErrorOpCode={setErrorOpCode}
+							runClicked={runClicked}
+							setRunClicked={setRunClicked}
+							togglePassZeros={togglePassZeros}
+							setTogglePassZeros={setTogglePassZeros}
 						/>
 						<ConsoleComp
 							buildSuccess={buildSuccess}
