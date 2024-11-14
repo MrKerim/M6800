@@ -311,7 +311,11 @@ export default function MemoryDisplay({
 					<div>
 						<div className="ml-2">H | I | N | Z | V | C</div>
 						<h1 className="bg-[#212630] h-min px-2 py-1 rounded-md">
-							{`${statusFlags[0]} | ${statusFlags[1]} | ${statusFlags[2]} | ${statusFlags[3]} | ${statusFlags[4]} | ${statusFlags[5]}`}
+							{`${Number(statusFlags.H)} | ${Number(statusFlags.I)} | ${Number(
+								statusFlags.N
+							)} | ${Number(statusFlags.Z)} | ${Number(
+								statusFlags.V
+							)} | ${Number(statusFlags.C)}`}
 						</h1>
 					</div>
 				</div>

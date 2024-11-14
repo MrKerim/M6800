@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
 	instructionSheetScript,
 	assemblerDirectiveScript,
+	assemblyCompiler,
 } from "./InstructionSheet";
 import CodeEditor from "./CodeEditor";
 import MemoryDisplay from "./MemoryDisplay";
@@ -17,7 +18,14 @@ function App() {
 	const [accumulatorB, setAccumulatorB] = useState(0);
 	const [xRegister, setXRegister] = useState(0);
 	const [stackPointer, setStackPointer] = useState(0);
-	const [statusFlags, setStatusFlags] = useState([0, 0, 0, 0, 0, 0]);
+	const [statusFlags, setStatusFlags] = useState({
+		H: 0,
+		I: 0,
+		N: 0,
+		Z: 0,
+		V: 0,
+		C: 0,
+	});
 	const [scrollPosition, setScrollPosition] = useState(0);
 	const [buildSuccess, setBuildSuccess] = useState(false);
 
@@ -26,6 +34,13 @@ function App() {
 
 	const [errorOnLine, setErrorOnLine] = useState(null);
 
+	const [stepClicked, setStepClicked] = useState(false);
+
+	useEffect(() => {
+		handleCompileMemoryStep();
+	}, [stepClicked]);
+
+	//scroll handler
 	useEffect(() => {
 		const handleScroll = () => {
 			if (window.scrollY >= 500) setScrollPosition(1);
@@ -48,6 +63,51 @@ function App() {
 		handleScriptTranscription(rawCode);
 	}, [build]);
 
+	//For compiling the memory
+	//Step
+	function handleCompileMemoryStep() {
+		const opCode = programMemory[programCounter % 0x10000];
+
+		let pC = programCounter;
+		let accA = accumulatorA;
+		let accB = accumulatorB;
+		let memory = programMemory;
+		let stackP = stackPointer;
+		let xReg = xRegister;
+		let statFlags = statusFlags;
+
+		if (assemblyCompiler.has(opCode)) {
+			const result = assemblyCompiler.get(opCode)(
+				pC,
+				accA,
+				accB,
+				memory,
+				stackP,
+				xReg,
+				statFlags
+			);
+			if (!result) {
+				console.log("error");
+				return;
+			}
+			({ pC, accA, accB, memory, stackP, xReg, statFlags } = result);
+
+			setProgramCounter(pC);
+			setAccumulatorA(accA);
+			setAccumulatorB(accB);
+			setProgramMemory(memory);
+			setStackPointer(stackP);
+			setXRegister(xReg);
+			setStatusFlags(statFlags);
+
+			console.log("step success");
+		} else {
+			console.log("error");
+			return;
+		}
+	}
+
+	//For script transcription
 	function handleScriptTranscription(rawCode) {
 		let pC = 0;
 		let tempMemory = new Array(0x10000).fill(0);
@@ -251,6 +311,21 @@ function App() {
 		console.log("build success");
 		setProgramMemory(tempMemory);
 		setBuildSuccess(true);
+
+		//Since we are building wee need to reset the remainings
+		setAccumulatorA(0x10);
+		setAccumulatorB(0x20);
+		setXRegister(0);
+		setStackPointer(0);
+		setStatusFlags({
+			H: 0,
+			I: 0,
+			N: 0,
+			Z: 0,
+			V: 0,
+			C: 0,
+		});
+		setProgramCounter(0);
 	}
 
 	function parseInstruction(line) {
@@ -347,6 +422,8 @@ function App() {
 							setBuildSuccess={setBuildSuccess}
 							build={build}
 							setBuild={setBuild}
+							stepClicked={stepClicked}
+							setStepClicked={setStepClicked}
 						/>
 						<ConsoleComp
 							buildSuccess={buildSuccess}
