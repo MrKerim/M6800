@@ -7581,7 +7581,7 @@ assemblyCompiler.set(0x74, lsrEex);
 
 /*
 -- -----------------------
-!CONTINUE FROM HERE
+!TODO: Check the logic overflow
 -- -----------------------
 */
 
@@ -7620,8 +7620,73 @@ function neg(keyword, value, modifier) {
 }
 instructionSheetScript.set("neg", neg);
 
+// Assembler
+
+//Indexed - 0x60
+
+function negEin(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const result = -memory[xReg + memory[pC + 1]];
+
+	const flags = {
+		H: statFlags.H, // Unchanged
+		I: statFlags.I, // Unchanged
+		N: result < 0,
+		Z: result === 0,
+		V: result === 0x80,
+		C: result !== 0,
+	};
+
+	memory[xReg + memory[pC + 1]] = result & 0xff;
+
+	return {
+		pC: pC + 2,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags: flags,
+	};
+}
+assemblyCompiler.set(0x60, negEin);
+
+//Extended - 0x70
+
+function negEex(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const address = (memory[pC + 1] << 8) | memory[pC + 2];
+	const result = -memory[address];
+
+	const flags = {
+		H: statFlags.H, // Unchanged
+		I: statFlags.I, // Unchanged
+		N: result < 0,
+		Z: result === 0,
+		V: result === 0x80,
+		C: result !== 0,
+	};
+
+	memory[address] = result & 0xff;
+
+	return {
+		pC: pC + 3,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags: flags,
+	};
+}
+assemblyCompiler.set(0x70, negEex);
+
 /*
 -- -----------------------
+-- -----------------------
+*/
+
+/*
+-- -----------------------
+!TODO: Check the logic
 -- -----------------------
 */
 
@@ -7660,6 +7725,76 @@ function rol(keyword, value, modifier) {
 }
 instructionSheetScript.set("rol", rol);
 
+// Assembler
+
+//Indexed - 0x69
+
+function rolEin(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const result = (memory[xReg + memory[pC + 1]] << 1) | (statFlags.C ? 1 : 0);
+
+	const flags = {
+		H: statFlags.H, // Unchanged
+		I: statFlags.I, // Unchanged
+		N: (result & 0x80) !== 0,
+		Z: result === 0,
+		V: ((memory[xReg + memory[pC + 1]] & 0x80) !== 0) ^ ((result & 0x80) !== 0),
+		C: (memory[xReg + memory[pC + 1]] & 0x80) !== 0,
+	};
+
+	memory[xReg + memory[pC + 1]] = result & 0xff;
+
+	return {
+		pC: pC + 2,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags: flags,
+	};
+}
+assemblyCompiler.set(0x69, rolEin);
+
+// Extended - 0x79
+
+function rolEex(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const address = (memory[pC + 1] << 8) | memory[pC + 2];
+	const result = (memory[address] << 1) | (statFlags.C ? 1 : 0);
+
+	const flags = {
+		H: statFlags.H, // Unchanged
+		I: statFlags.I, // Unchanged
+		N: (result & 0x80) !== 0,
+		Z: result === 0,
+		V: ((memory[address] & 0x80) !== 0) ^ ((result & 0x80) !== 0),
+		C: (memory[address] & 0x80) !== 0,
+	};
+
+	memory[address] = result & 0xff;
+
+	return {
+		pC: pC + 3,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags: flags,
+	};
+}
+assemblyCompiler.set(0x79, rolEex);
+
+/*
+-- -----------------------
+-- -----------------------
+*/
+
+/*
+-- -----------------------
+!TODO: Check the logic
+-- -----------------------
+*/
+
 /*
 ROR MEMORY - Memory>>1 -> Memory
     INDEXED | EXTENDED 
@@ -7694,6 +7829,71 @@ function ror(keyword, value, modifier) {
 	} else return null;
 }
 instructionSheetScript.set("ror", ror);
+
+// Assembler
+
+//Indexed - 0x66
+
+function rorEin(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const result =
+		(memory[xReg + memory[pC + 1]] >> 1) | (statFlags.C ? 0x80 : 0);
+
+	const flags = {
+		H: statFlags.H, // Unchanged
+		I: statFlags.I, // Unchanged
+		N: (result & 0x80) !== 0,
+		Z: result === 0,
+		V: ((memory[xReg + memory[pC + 1]] & 0x01) !== 0) ^ ((result & 0x80) !== 0),
+		C: (memory[xReg + memory[pC + 1]] & 0x01) !== 0,
+	};
+
+	memory[xReg + memory[pC + 1]] = result & 0xff;
+
+	return {
+		pC: pC + 2,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags: flags,
+	};
+}
+assemblyCompiler.set(0x66, rorEin);
+
+// Extended - 0x76
+
+function rorEex(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const address = (memory[pC + 1] << 8) | memory[pC + 2];
+	const result = (memory[address] >> 1) | (statFlags.C ? 0x80 : 0);
+
+	const flags = {
+		H: statFlags.H, // Unchanged
+		I: statFlags.I, // Unchanged
+		N: (result & 0x80) !== 0,
+		Z: result === 0,
+		V: ((memory[address] & 0x01) !== 0) ^ ((result & 0x80) !== 0),
+		C: (memory[address] & 0x01) !== 0,
+	};
+
+	memory[address] = result & 0xff;
+
+	return {
+		pC: pC + 3,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags: flags,
+	};
+}
+assemblyCompiler.set(0x76, rorEex);
+
+/*
+-- -----------------------
+-- -----------------------
+*/
 
 /*
 STAA VARIABLE - AccA -> variable
@@ -7736,6 +7936,92 @@ function staa(keyword, value, modifier) {
 }
 instructionSheetScript.set("staa", staa);
 
+// Assembler
+
+//Direct - 0x97
+
+function staaEd(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	memory[memory[pC + 1]] = accA;
+
+	const flags = {
+		H: statFlags.H, // Unchanged
+		I: statFlags.I, // Unchanged
+		N: (accA & 0x80) !== 0,
+		Z: accA === 0,
+		V: false,
+		C: statFlags.C, // Unchanged
+	};
+
+	return {
+		pC: pC + 2,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags: flags,
+	};
+}
+assemblyCompiler.set(0x97, staaEd);
+
+//Indexed - 0xa7
+
+function staaEin(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	memory[xReg + memory[pC + 1]] = accA;
+
+	const flags = {
+		H: statFlags.H, // Unchanged
+		I: statFlags.I, // Unchanged
+		N: (accA & 0x80) !== 0,
+		Z: accA === 0,
+		V: false,
+		C: statFlags.C, // Unchanged
+	};
+
+	return {
+		pC: pC + 2,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags: flags,
+	};
+}
+assemblyCompiler.set(0xa7, staaEin);
+
+//Extended - 0xb7
+
+function staaEex(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const address = (memory[pC + 1] << 8) | memory[pC + 2];
+	memory[address] = accA;
+
+	const flags = {
+		H: statFlags.H, // Unchanged
+		I: statFlags.I, // Unchanged
+		N: (accA & 0x80) !== 0,
+		Z: accA === 0,
+		V: false,
+		C: statFlags.C, // Unchanged
+	};
+
+	return {
+		pC: pC + 2,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags: flags,
+	};
+}
+assemblyCompiler.set(0xb7, staaEex);
+
+/*
+-- -----------------------
+-- -----------------------
+*/
+
 /*
 STAB VARIABLE - AccB -> variable
     DIRECT | INDEXED | EXTENDED 
@@ -7777,6 +8063,92 @@ function stab(keyword, value, modifier) {
 }
 instructionSheetScript.set("stab", stab);
 
+// Assembler
+
+//Direct - 0xd7
+
+function stabEd(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	memory[memory[pC + 1]] = accB;
+
+	const flags = {
+		H: statFlags.H, // Unchanged
+		I: statFlags.I, // Unchanged
+		N: (accB & 0x80) !== 0,
+		Z: accB === 0,
+		V: false,
+		C: statFlags.C, // Unchanged
+	};
+
+	return {
+		pC: pC + 2,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags: flags,
+	};
+}
+assemblyCompiler.set(0xd7, stabEd);
+
+//Indexed - 0xe7
+
+function stabEin(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	memory[xReg + memory[pC + 1]] = accB;
+
+	const flags = {
+		H: statFlags.H, // Unchanged
+		I: statFlags.I, // Unchanged
+		N: (accB & 0x80) !== 0,
+		Z: accB === 0,
+		V: false,
+		C: statFlags.C, // Unchanged
+	};
+
+	return {
+		pC: pC + 2,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags: flags,
+	};
+}
+assemblyCompiler.set(0xe7, stabEin);
+
+//Extended - 0xf7
+
+function stabEex(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const address = (memory[pC + 1] << 8) | memory[pC + 2];
+	memory[address] = accB;
+
+	const flags = {
+		H: statFlags.H, // Unchanged
+		I: statFlags.I, // Unchanged
+		N: (accB & 0x80) !== 0,
+		Z: accB === 0,
+		V: false,
+		C: statFlags.C, // Unchanged
+	};
+
+	return {
+		pC: pC + 2,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags: flags,
+	};
+}
+assemblyCompiler.set(0xf7, stabEex);
+
+/*
+-- -----------------------
+-- -----------------------
+*/
+
 /*
 TST MEMORY - M - 0
     INDEXED | EXTENDED 
@@ -7811,6 +8183,66 @@ function tst(keyword, value, modifier) {
 	} else return null;
 }
 instructionSheetScript.set("tst", tst);
+
+// Assembler
+
+//Indexed - 0x6d
+
+function tstEin(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const result = memory[xReg + memory[pC + 1]];
+
+	const flags = {
+		H: statFlags.H, // Unchanged
+		I: statFlags.I, // Unchanged
+		N: result & (0x80 !== 0),
+		Z: result === 0,
+		V: false,
+		C: false,
+	};
+
+	return {
+		pC: pC + 2,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags: flags,
+	};
+}
+assemblyCompiler.set(0x6d, tstEin);
+
+//Extended - 0x7d
+
+function tstEex(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const address = (memory[pC + 1] << 8) | memory[pC + 2];
+	const result = memory[address];
+
+	const flags = {
+		H: statFlags.H, // Unchanged
+		I: statFlags.I, // Unchanged
+		N: result & (0x80 !== 0),
+		Z: result === 0,
+		V: false,
+		C: false,
+	};
+
+	return {
+		pC: pC + 2,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags: flags,
+	};
+}
+assemblyCompiler.set(0x7d, tstEex);
+
+/*
+-- -----------------------
+-- -----------------------
+*/
 
 /*
 STS VARIABLE - SPms -> variable, SPls -> (variable + 1)
@@ -7853,6 +8285,96 @@ function sts(keyword, value, modifier) {
 }
 instructionSheetScript.set("sts", sts);
 
+// Assembler
+
+//Direct - 0x9f
+
+function stsEd(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	memory[memory[pC + 1]] = stackP >> 8;
+	memory[memory[pC + 1] + 1] = stackP & 0xff;
+
+	const flags = {
+		H: statFlags.H, // Unchanged
+		I: statFlags.I, // Unchanged
+		N: (stackP >> 8) & (0x80 !== 0),
+		Z: stackP === 0,
+		V: false,
+		C: statFlags.C, // Unchanged
+	};
+
+	return {
+		pC: pC + 2,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags: flags,
+	};
+}
+assemblyCompiler.set(0x9f, stsEd);
+
+//Indexed - 0xaf
+
+function stsEin(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const address = xReg + memory[pC + 1];
+	memory[address] = stackP >> 8;
+	memory[address + 1] = stackP & 0xff;
+
+	const flags = {
+		H: statFlags.H, // Unchanged
+		I: statFlags.I, // Unchanged
+		N: (stackP >> 8) & (0x80 !== 0),
+		Z: stackP === 0,
+		V: false,
+		C: statFlags.C, // Unchanged
+	};
+
+	return {
+		pC: pC + 2,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags: flags,
+	};
+}
+assemblyCompiler.set(0xaf, stsEin);
+
+//Extended - 0xbf
+
+function stsEex(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const address = (memory[pC + 1] << 8) | memory[pC + 2];
+	memory[address] = stackP >> 8;
+	memory[address + 1] = stackP & 0xff;
+
+	const flags = {
+		H: statFlags.H, // Unchanged
+		I: statFlags.I, // Unchanged
+		N: (stackP >> 8) & (0x80 !== 0),
+		Z: stackP === 0,
+		V: false,
+		C: statFlags.C, // Unchanged
+	};
+
+	return {
+		pC: pC + 2,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags: flags,
+	};
+}
+assemblyCompiler.set(0xbf, stsEex);
+
+/*
+-- -----------------------
+-- -----------------------
+*/
+
 /*
 STX VARIABLE - Xms -> variable, Xls -> (variable + 1)
     DIRECT | INDEXED | EXTENDED 
@@ -7893,6 +8415,96 @@ function stx(keyword, value, modifier) {
 	} else return null;
 }
 instructionSheetScript.set("stx", stx);
+
+// Assembler
+
+//Direct - 0xdf
+
+function stsEd(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	memory[memory[pC + 1]] = stackP >> 8;
+	memory[memory[pC + 1] + 1] = stackP & 0xff;
+
+	const flags = {
+		H: statFlags.H, // Unchanged
+		I: statFlags.I, // Unchanged
+		N: (stackP >> 8) & (0x80 !== 0),
+		Z: stackP === 0,
+		V: false,
+		C: statFlags.C, // Unchanged
+	};
+
+	return {
+		pC: pC + 2,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags: flags,
+	};
+}
+assemblyCompiler.set(0x9f, stsEd);
+
+//Indexed - 0xaf
+
+function stsEin(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const address = xReg + memory[pC + 1];
+	memory[address] = stackP >> 8;
+	memory[address + 1] = stackP & 0xff;
+
+	const flags = {
+		H: statFlags.H, // Unchanged
+		I: statFlags.I, // Unchanged
+		N: (stackP >> 8) & (0x80 !== 0),
+		Z: stackP === 0,
+		V: false,
+		C: statFlags.C, // Unchanged
+	};
+
+	return {
+		pC: pC + 2,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags: flags,
+	};
+}
+assemblyCompiler.set(0xaf, stsEin);
+
+//Extended - 0xbf
+
+function stsEex(pC, accA, accB, memory, stackP, xReg, statFlags) {
+	const address = (memory[pC + 1] << 8) | memory[pC + 2];
+	memory[address] = stackP >> 8;
+	memory[address + 1] = stackP & 0xff;
+
+	const flags = {
+		H: statFlags.H, // Unchanged
+		I: statFlags.I, // Unchanged
+		N: (stackP >> 8) & (0x80 !== 0),
+		Z: stackP === 0,
+		V: false,
+		C: statFlags.C, // Unchanged
+	};
+
+	return {
+		pC: pC + 2,
+		accA,
+		accB,
+		memory,
+		stackP,
+		xReg,
+		statFlags: flags,
+	};
+}
+assemblyCompiler.set(0xbf, stsEex);
+
+/*
+-- -----------------------
+-- -----------------------
+*/
 
 /*
 JMP VARIABLE - PC -> variable
