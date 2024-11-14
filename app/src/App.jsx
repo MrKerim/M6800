@@ -17,7 +17,7 @@ function App() {
 	const [accumulatorA, setAccumulatorA] = useState(0);
 	const [accumulatorB, setAccumulatorB] = useState(0);
 	const [xRegister, setXRegister] = useState(0);
-	const [stackPointer, setStackPointer] = useState(0);
+	const [stackPointer, setStackPointer] = useState(0xf000);
 	const [statusFlags, setStatusFlags] = useState({
 		H: 0,
 		I: 0,
@@ -313,10 +313,10 @@ function App() {
 		setBuildSuccess(true);
 
 		//Since we are building wee need to reset the remainings
-		setAccumulatorA(0x10);
-		setAccumulatorB(0x20);
+		setAccumulatorA(0);
+		setAccumulatorB(0);
 		setXRegister(0);
-		setStackPointer(0);
+		setStackPointer(0xf000);
 		setStatusFlags({
 			H: 0,
 			I: 0,
