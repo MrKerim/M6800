@@ -39,6 +39,7 @@ const registerCustomLanguage = (monaco) => {
 	monaco.languages.setMonarchTokensProvider("customAssembly", {
 		tokenizer: {
 			root: [
+				[/\s+(\.[eE][nN][dD])\b/, { token: "endMarker", next: "afterEnd" }],
 				[/#[\$%]?[a-zA-Z0-9]+/, { token: "number" }],
 				[/^([a-zA-Z_][a-zA-Z0-9_]*)/, { token: "label" }],
 				[keywordPattern, "keyword"],
@@ -48,6 +49,7 @@ const registerCustomLanguage = (monaco) => {
 				[/\s+/, ""],
 				[/./, "text"],
 			],
+			afterEnd: [[/./, { token: "grayText" }]],
 		},
 	});
 
@@ -56,6 +58,8 @@ const registerCustomLanguage = (monaco) => {
 		base: "vs-dark",
 		inherit: true,
 		rules: [
+			{ token: "endMarker", foreground: "#9b715e" },
+			{ token: "grayText", foreground: "#808080" },
 			{ token: "label", foreground: "#569cd6" },
 			{ token: "keyword", foreground: "#a573a2" },
 			{ token: "directive", foreground: "#9b715e" },
@@ -310,28 +314,43 @@ const CodeEditor = ({
 								</svg>
 								STOP
 							</button>
-							<button
-								onClick={() => {
-									if (buildSuccess) setRunClicked(!runClicked);
-								}}
-								className="bg-green-500  lg:font-light items-center  text-lg p-2  text-white  rounded-md flex gap-2  "
-							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									fill="currentColor"
-									viewBox="0 0 24 24"
-									strokeWidth={1.5}
-									stroke="currentColor"
-									className="size-6"
+							{!runClicked ? (
+								<button
+									onClick={() => {
+										console.log("button run press");
+										if (buildSuccess) setRunClicked(true);
+									}}
+									className="bg-green-500  lg:font-light items-center  text-lg p-2  text-white  rounded-md flex gap-2  "
 								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"
-									/>
-								</svg>
-								RUN
-							</button>
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										fill="currentColor"
+										viewBox="0 0 24 24"
+										strokeWidth={1.5}
+										stroke="currentColor"
+										className="size-6"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"
+										/>
+									</svg>
+									RUN
+								</button>
+							) : (
+								<button className="bg-green-700 w-24 h-10  lg:font-light items-center justify-center text-xl p-2   text-black  rounded-md flex gap-2   animate-pulse">
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										width="16"
+										height="16"
+										fill="currentColor"
+										viewBox="0 0 16 16"
+									>
+										<path d="M2 14.5a.5.5 0 0 0 .5.5h11a.5.5 0 1 0 0-1h-1v-1a4.5 4.5 0 0 0-2.557-4.06c-.29-.139-.443-.377-.443-.59v-.7c0-.213.154-.451.443-.59A4.5 4.5 0 0 0 12.5 3V2h1a.5.5 0 0 0 0-1h-11a.5.5 0 0 0 0 1h1v1a4.5 4.5 0 0 0 2.557 4.06c.29.139.443.377.443.59v.7c0 .213-.154.451-.443.59A4.5 4.5 0 0 0 3.5 13v1h-1a.5.5 0 0 0-.5.5m2.5-.5v-1a3.5 3.5 0 0 1 1.989-3.158c.533-.256 1.011-.79 1.011-1.491v-.702s.18.101.5.101.5-.1.5-.1v.7c0 .701.478 1.236 1.011 1.492A3.5 3.5 0 0 1 11.5 13v1z" />
+									</svg>
+								</button>
+							)}
 							<button
 								onClick={() => {
 									if (buildSuccess) setStepClicked(!stepClicked);

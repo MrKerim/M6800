@@ -43,16 +43,18 @@ function App() {
 
 	const [togglePassZeros, setTogglePassZeros] = useState(false);
 
+	const [stopRunAtEnd, setStopRunAtEnd] = useState(0x10000);
+
 	useEffect(() => {
 		handleCompileMemoryStep();
 	}, [stepClicked]);
 
-	/*
 	useEffect(() => {
+		if (!runClicked) return;
 		console.log("run clicked");
 		handleCompileMemoryRun();
+		setRunClicked(false);
 	}, [runClicked]);
-*/
 
 	//scroll handler
 	useEffect(() => {
@@ -149,8 +151,61 @@ function App() {
 		}
 	}
 
+	function handleCompileMemoryRun() {
+		let pC = programCounter;
+		let accA = accumulatorA;
+		let accB = accumulatorB;
+		let memory = programMemory;
+		let stackP = stackPointer;
+		let xReg = xRegister;
+		let statFlags = statusFlags;
+
+		while (pC < stopRunAtEnd) {
+			let opCode = memory[pC % 0x10000];
+
+			if (opCode === 0) {
+				pC++;
+				continue;
+			}
+
+			if (assemblyCompiler.has(opCode)) {
+				const result = assemblyCompiler.get(opCode)(
+					pC,
+					accA,
+					accB,
+					memory,
+					stackP,
+					xReg,
+					statFlags
+				);
+				if (!result) {
+					setErrorOpCode("invalid arguments or cred.");
+					return;
+				}
+				({ pC, accA, accB, memory, stackP, xReg, statFlags } = result);
+
+				if (opCode !== 0) console.log(opCode);
+			} else {
+				setErrorOpCode("invalid opcode : " + opCode);
+				return;
+			}
+		}
+
+		setProgramCounter(pC);
+		setAccumulatorA(accA);
+		setAccumulatorB(accB);
+		setProgramMemory(memory);
+		setStackPointer(stackP);
+		setXRegister(xReg);
+		setStatusFlags(statFlags);
+
+		return;
+	}
+
 	//For script transcription
 	function handleScriptTranscription(rawCode) {
+		let stopRunEnd = 0x10000;
+
 		let pC = 0;
 		let tempMemory = new Array(0x10000).fill(0);
 		let labels = new Map();
@@ -193,6 +248,7 @@ function App() {
 						labels.set(label, pC);
 					}
 
+					stopRunEnd = pC;
 					break;
 				}
 
@@ -368,6 +424,8 @@ function App() {
 			C: 0,
 		});
 		setProgramCounter(0);
+		setStopRunAtEnd(stopRunEnd);
+		// either pC or -1
 	}
 
 	function parseInstruction(line) {
