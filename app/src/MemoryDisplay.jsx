@@ -1,3 +1,5 @@
+import { FixedSizeList as List } from "react-window";
+
 export default function MemoryDisplay({
 	memory,
 	accumulatorA,
@@ -8,11 +10,192 @@ export default function MemoryDisplay({
 	programCounter,
 	buildSuccess,
 }) {
+	const Row = ({ index, style }) => (
+		<div className="flex" style={style} key={index}>
+			<h1 className="pt-[4px] pr-2">
+				{index.toString(16).padStart(3, "0").toUpperCase() + "0"}
+			</h1>
+
+			<div
+				className={
+					"bg-[#212630] px-2 flex  gap-2 sm:gap-[10px] " +
+					(index === 0 ? "rounded-t-md" : index === 0xfff ? "rounded-b-md" : "")
+				}
+			>
+				<h1
+					className={
+						" pt-[4px] " +
+						(buildSuccess && programCounter === index * 16 + 0
+							? " bg-yellow-700"
+							: "")
+					}
+				>
+					{memory[index * 16 + 0].toString(16).padStart(2, "0").toUpperCase()}
+				</h1>
+				<h1
+					className={
+						" pt-[4px] " +
+						(buildSuccess && programCounter === index * 16 + 1
+							? " bg-yellow-700"
+							: "")
+					}
+				>
+					{memory[index * 16 + 1].toString(16).padStart(2, "0").toUpperCase()}
+				</h1>
+				<h1
+					className={
+						" pt-[4px] " +
+						(buildSuccess && programCounter === index * 16 + 2
+							? " bg-yellow-700"
+							: "")
+					}
+				>
+					{memory[index * 16 + 2].toString(16).padStart(2, "0").toUpperCase()}
+				</h1>
+				<h1
+					className={
+						" pt-[4px] " +
+						(buildSuccess && programCounter === index * 16 + 3
+							? " bg-yellow-700"
+							: "")
+					}
+				>
+					{memory[index * 16 + 3].toString(16).padStart(2, "0").toUpperCase()}
+				</h1>
+				<h1
+					className={
+						" pt-[4px] " +
+						(buildSuccess && programCounter === index * 16 + 4
+							? " bg-yellow-700"
+							: "")
+					}
+				>
+					{memory[index * 16 + 4].toString(16).padStart(2, "0").toUpperCase()}
+				</h1>
+				<h1
+					className={
+						" pt-[4px] " +
+						(buildSuccess && programCounter === index * 16 + 5
+							? " bg-yellow-700"
+							: "")
+					}
+				>
+					{memory[index * 16 + 5].toString(16).padStart(2, "0").toUpperCase()}
+				</h1>
+				<h1
+					className={
+						" pt-[4px] " +
+						(buildSuccess && programCounter === index * 16 + 6
+							? " bg-yellow-700"
+							: "")
+					}
+				>
+					{memory[index * 16 + 6].toString(16).padStart(2, "0").toUpperCase()}
+				</h1>
+				<h1
+					className={
+						" pt-[4px] " +
+						(buildSuccess && programCounter === index * 16 + 7
+							? " bg-yellow-700"
+							: "")
+					}
+				>
+					{memory[index * 16 + 7].toString(16).padStart(2, "0").toUpperCase()}
+				</h1>
+				<h1
+					className={
+						" pt-[4px] " +
+						(buildSuccess && programCounter === index * 16 + 8
+							? " bg-yellow-700"
+							: "")
+					}
+				>
+					{memory[index * 16 + 8].toString(16).padStart(2, "0").toUpperCase()}
+				</h1>
+				<h1
+					className={
+						" pt-[4px] " +
+						(buildSuccess && programCounter === index * 16 + 9
+							? " bg-yellow-700"
+							: "")
+					}
+				>
+					{memory[index * 16 + 9].toString(16).padStart(2, "0").toUpperCase()}
+				</h1>
+				<h1
+					className={
+						" pt-[4px] " +
+						(buildSuccess && programCounter === index * 16 + 10
+							? " bg-yellow-700"
+							: "")
+					}
+				>
+					{memory[index * 16 + 10].toString(16).padStart(2, "0").toUpperCase()}
+				</h1>
+				<h1
+					className={
+						" pt-[4px] " +
+						(buildSuccess && programCounter === index * 16 + 11
+							? " bg-yellow-700"
+							: "")
+					}
+				>
+					{memory[index * 16 + 11].toString(16).padStart(2, "0").toUpperCase()}
+				</h1>
+				<h1
+					className={
+						" pt-[4px] " +
+						(buildSuccess && programCounter === index * 16 + 12
+							? " bg-yellow-700"
+							: "")
+					}
+				>
+					{memory[index * 16 + 12].toString(16).padStart(2, "0").toUpperCase()}
+				</h1>
+				<h1
+					className={
+						" pt-[4px] " +
+						(buildSuccess && programCounter === index * 16 + 13
+							? " bg-yellow-700"
+							: "")
+					}
+				>
+					{memory[index * 16 + 13].toString(16).padStart(2, "0").toUpperCase()}
+				</h1>
+				<h1
+					className={
+						" pt-[4px] " +
+						(buildSuccess && programCounter === index * 16 + 14
+							? " bg-yellow-700"
+							: "")
+					}
+				>
+					{memory[index * 16 + 14].toString(16).padStart(2, "0").toUpperCase()}
+				</h1>
+				<h1
+					className={
+						" pt-[4px] " +
+						(buildSuccess && programCounter === index * 16 + 15
+							? " bg-yellow-700"
+							: "")
+					}
+				>
+					{memory[index * 16 + 15].toString(16).padStart(2, "0").toUpperCase()}
+				</h1>
+			</div>
+		</div>
+	);
+	const Row2 = ({ index, style }) => (
+		<div className="text-white" style={style} key={index}>
+			{index + "0"}
+		</div>
+	);
+
 	return (
 		<>
 			<div className="text-[10px] sm:text-lg xl:ml-8 font-mono max-w-[600px]  sm:rounded-md h-[335px] sm:h-[560px] bg-[#2c3950] sm:mx-4 text-white ">
 				<div className="flex pt-2 justify-center  rounded-t-md ">
-					<h1 className="mr-2 sm:mr-4 ml-3">Tt</h1>
+					<h1 className="mr-2 sm:mr-4 ml-6 sm:ml-3">Tt</h1>
 					<div className="  flex pb-[5px] px-2 gap-2 sm:gap-[10px] ">
 						<h1>00</h1>
 						<h1>01</h1>
@@ -32,243 +215,17 @@ export default function MemoryDisplay({
 						<h1>0F</h1>
 					</div>
 				</div>
-				<div className="flex justify-center">
-					<div className="h-[300px] sm:h-[510px] overflow-y-auto flex  ">
-						<div>
-							{Array.from({ length: 0xfff + 1 }).map((_, i) => {
-								return (
-									<h1 key={i} className="pt-[4px] pr-2">
-										{i.toString(16).padStart(3, "0").toUpperCase() + "0"}
-									</h1>
-								);
-							})}
-						</div>
-						<div className=" h-full  rounded-md">
-							{Array.from({ length: 0xfff + 1 }).map((_, i) => {
-								return (
-									<div
-										key={i}
-										className={
-											"bg-[#212630] px-2 flex  gap-2 sm:gap-[10px] " +
-											(i === 0
-												? "rounded-t-md"
-												: i === 0xfff
-												? "rounded-b-md"
-												: "")
-										}
-									>
-										<h1
-											className={
-												" pt-[4px] " +
-												(buildSuccess && programCounter === i * 16 + 0
-													? " bg-yellow-700"
-													: "")
-											}
-										>
-											{memory[i * 16 + 0]
-												.toString(16)
-												.padStart(2, "0")
-												.toUpperCase()}
-										</h1>
-										<h1
-											className={
-												" pt-[4px] " +
-												(buildSuccess && programCounter === i * 16 + 1
-													? " bg-yellow-700"
-													: "")
-											}
-										>
-											{memory[i * 16 + 1]
-												.toString(16)
-												.padStart(2, "0")
-												.toUpperCase()}
-										</h1>
-										<h1
-											className={
-												" pt-[4px] " +
-												(buildSuccess && programCounter === i * 16 + 2
-													? " bg-yellow-700"
-													: "")
-											}
-										>
-											{memory[i * 16 + 2]
-												.toString(16)
-												.padStart(2, "0")
-												.toUpperCase()}
-										</h1>
-										<h1
-											className={
-												" pt-[4px] " +
-												(buildSuccess && programCounter === i * 16 + 3
-													? " bg-yellow-700"
-													: "")
-											}
-										>
-											{memory[i * 16 + 3]
-												.toString(16)
-												.padStart(2, "0")
-												.toUpperCase()}
-										</h1>
-										<h1
-											className={
-												" pt-[4px] " +
-												(buildSuccess && programCounter === i * 16 + 4
-													? " bg-yellow-700"
-													: "")
-											}
-										>
-											{memory[i * 16 + 4]
-												.toString(16)
-												.padStart(2, "0")
-												.toUpperCase()}
-										</h1>
-										<h1
-											className={
-												" pt-[4px] " +
-												(buildSuccess && programCounter === i * 16 + 5
-													? " bg-yellow-700"
-													: "")
-											}
-										>
-											{memory[i * 16 + 5]
-												.toString(16)
-												.padStart(2, "0")
-												.toUpperCase()}
-										</h1>
-										<h1
-											className={
-												" pt-[4px] " +
-												(buildSuccess && programCounter === i * 16 + 6
-													? " bg-yellow-700"
-													: "")
-											}
-										>
-											{memory[i * 16 + 6]
-												.toString(16)
-												.padStart(2, "0")
-												.toUpperCase()}
-										</h1>
-										<h1
-											className={
-												" pt-[4px] " +
-												(buildSuccess && programCounter === i * 16 + 7
-													? " bg-yellow-700"
-													: "")
-											}
-										>
-											{memory[i * 16 + 7]
-												.toString(16)
-												.padStart(2, "0")
-												.toUpperCase()}
-										</h1>
-										<h1
-											className={
-												" pt-[4px] " +
-												(buildSuccess && programCounter === i * 16 + 8
-													? " bg-yellow-700"
-													: "")
-											}
-										>
-											{memory[i * 16 + 8]
-												.toString(16)
-												.padStart(2, "0")
-												.toUpperCase()}
-										</h1>
-										<h1
-											className={
-												" pt-[4px] " +
-												(buildSuccess && programCounter === i * 16 + 9
-													? " bg-yellow-700"
-													: "")
-											}
-										>
-											{memory[i * 16 + 9]
-												.toString(16)
-												.padStart(2, "0")
-												.toUpperCase()}
-										</h1>
-										<h1
-											className={
-												" pt-[4px] " +
-												(buildSuccess && programCounter === i * 16 + 10
-													? " bg-yellow-700"
-													: "")
-											}
-										>
-											{memory[i * 16 + 10]
-												.toString(16)
-												.padStart(2, "0")
-												.toUpperCase()}
-										</h1>
-										<h1
-											className={
-												" pt-[4px] " +
-												(buildSuccess && programCounter === i * 16 + 11
-													? " bg-yellow-700"
-													: "")
-											}
-										>
-											{memory[i * 16 + 11]
-												.toString(16)
-												.padStart(2, "0")
-												.toUpperCase()}
-										</h1>
-										<h1
-											className={
-												" pt-[4px] " +
-												(buildSuccess && programCounter === i * 16 + 12
-													? " bg-yellow-700"
-													: "")
-											}
-										>
-											{memory[i * 16 + 12]
-												.toString(16)
-												.padStart(2, "0")
-												.toUpperCase()}
-										</h1>
-										<h1
-											className={
-												" pt-[4px] " +
-												(buildSuccess && programCounter === i * 16 + 13
-													? " bg-yellow-700"
-													: "")
-											}
-										>
-											{memory[i * 16 + 13]
-												.toString(16)
-												.padStart(2, "0")
-												.toUpperCase()}
-										</h1>
-										<h1
-											className={
-												" pt-[4px] " +
-												(buildSuccess && programCounter === i * 16 + 14
-													? " bg-yellow-700"
-													: "")
-											}
-										>
-											{memory[i * 16 + 14]
-												.toString(16)
-												.padStart(2, "0")
-												.toUpperCase()}
-										</h1>
-										<h1
-											className={
-												" pt-[4px] " +
-												(buildSuccess && programCounter === i * 16 + 15
-													? " bg-yellow-700"
-													: "")
-											}
-										>
-											{memory[i * 16 + 15]
-												.toString(16)
-												.padStart(2, "0")
-												.toUpperCase()}
-										</h1>
-									</div>
-								);
-							})}
-						</div>
+
+				<div className="w-full flex justify-center">
+					<div className="ml-3 h-[300px] sm:h-[510px] overflow-y-auto w-full ">
+						<List
+							height={510} // Let the parent container control the height
+							itemCount={0xfff} // Total number of rows
+							itemSize={35} // Height of each row
+							width="100%" // Width of the list container
+						>
+							{Row}
+						</List>
 					</div>
 				</div>
 			</div>
@@ -323,3 +280,12 @@ export default function MemoryDisplay({
 		</>
 	);
 }
+
+/*
+	const Row2 = ({ index, style }) => (
+		<div className="flex" style={style} key={index}>
+			{index + "0"}
+		</div>
+	);
+
+*/
