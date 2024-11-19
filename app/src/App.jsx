@@ -86,11 +86,11 @@ function App() {
 	function handlePassZeros(pC, memory) {
 		let tempPC = pC;
 		const tempMemory = memory;
-		while (tempMemory[tempPC] === 0) {
+		while (tempMemory[tempPC % 0x10000] === 0) {
 			tempPC++;
 		}
 
-		return tempPC;
+		return tempPC % 0x10000;
 	}
 
 	function handleCompileMemoryStep() {
@@ -98,17 +98,17 @@ function App() {
 		if (errorOpCode) return;
 
 		let opCode = programMemory[programCounter % 0x10000];
-		let pC = programCounter;
+		let pC = programCounter % 0x10000;
 
 		// If the opCode is 0 then we increment the program counter and return
 		// Also we check if the togglePassZeros is true then we will skip the zeros
 		if (opCode === 0) {
 			if (togglePassZeros) {
-				const newPC = handlePassZeros(programCounter, programMemory);
+				const newPC = handlePassZeros(pC, programMemory);
 				setProgramCounter(newPC);
 				return;
 			} else {
-				setProgramCounter((prev) => prev + 1);
+				setProgramCounter((prev) => (prev + 1) % 0x10000);
 				return;
 			}
 		}
