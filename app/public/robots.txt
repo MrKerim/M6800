@@ -1,3 +1,0 @@
-User-agent: *
-Allow: /
-Sitemap: https://m6800.vercel.app/sitemap.xml
