@@ -484,17 +484,15 @@ const CodeEditor = ({
 									</button>
 									{/* show share url if exists */}
 									{shareUrl && (
-										<div className="flex flex-col items-start gap-2 mt-4">
-											<button
-												onClick={() => {
-													navigator.clipboard.writeText(shareUrl);
-													alert("URL copied to the clipboard");
-												}}
-												className="bg-gray-700 text-white text-lg p-2 rounded-md"
-											>
-												Copy URL
-											</button>
-										</div>
+										<button
+											onClick={() => {
+												navigator.clipboard.writeText(shareUrl);
+												alert("URL copied to the clipboard");
+											}}
+											className="bg-gray-700 text-white text-lg p-2 rounded-md lg:font-light items-center "
+										>
+											Copy URL
+										</button>
 									)}
 								</div>
 							</div>
