@@ -482,6 +482,7 @@ const CodeEditor = ({
 									<button
 										onClick={() => {
 											navigator.clipboard.writeText(shareUrl);
+											alert("URL copied to the clipboard");
 										}}
 										className="bg-gray-700 text-white text-lg p-2 rounded-md"
 									>
