@@ -332,164 +332,172 @@ const CodeEditor = ({
 						</>
 					) : (
 						<>
-							<button
-								onClick={() => {
-									console.log("stop");
-									setBuildSuccess(false);
-								}}
-								className="bg-red-500  lg:font-light items-center  text-lg p-2  text-white  rounded-md flex gap-2 "
-							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									fill="currentColor"
-									viewBox="0 0 24 24"
-									strokeWidth={1.5}
-									stroke="currentColor"
-									className="size-6"
-								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										d="M5.25 7.5A2.25 2.25 0 0 1 7.5 5.25h9a2.25 2.25 0 0 1 2.25 2.25v9a2.25 2.25 0 0 1-2.25 2.25h-9a2.25 2.25 0 0 1-2.25-2.25v-9Z"
-									/>
-								</svg>
-								STOP
-							</button>
-							{!runClicked ? (
-								<button
-									onClick={() => {
-										console.log("button run press");
-										if (buildSuccess) setRunClicked(true);
-									}}
-									className="bg-green-500  lg:font-light items-center  text-lg p-2  text-white  rounded-md flex gap-2  "
-								>
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										fill="currentColor"
-										viewBox="0 0 24 24"
-										strokeWidth={1.5}
-										stroke="currentColor"
-										className="size-6"
-									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"
-										/>
-									</svg>
-									RUN
-								</button>
-							) : (
-								<button className="bg-green-700 w-24 h-10  lg:font-light items-center justify-center text-xl p-2   text-black  rounded-md flex gap-2   animate-pulse">
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										width="16"
-										height="16"
-										fill="currentColor"
-										viewBox="0 0 16 16"
-									>
-										<path d="M2 14.5a.5.5 0 0 0 .5.5h11a.5.5 0 1 0 0-1h-1v-1a4.5 4.5 0 0 0-2.557-4.06c-.29-.139-.443-.377-.443-.59v-.7c0-.213.154-.451.443-.59A4.5 4.5 0 0 0 12.5 3V2h1a.5.5 0 0 0 0-1h-11a.5.5 0 0 0 0 1h1v1a4.5 4.5 0 0 0 2.557 4.06c.29.139.443.377.443.59v.7c0 .213-.154.451-.443.59A4.5 4.5 0 0 0 3.5 13v1h-1a.5.5 0 0 0-.5.5m2.5-.5v-1a3.5 3.5 0 0 1 1.989-3.158c.533-.256 1.011-.79 1.011-1.491v-.702s.18.101.5.101.5-.1.5-.1v.7c0 .701.478 1.236 1.011 1.492A3.5 3.5 0 0 1 11.5 13v1z" />
-									</svg>
-								</button>
-							)}
-							<button
-								onClick={() => {
-									if (buildSuccess) setStepClicked(!stepClicked);
-								}}
-								className="bg-blue-500  lg:font-light items-center  text-lg p-2  text-white  rounded-md flex gap-2  "
-							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									width="24"
-									height="24"
-									fill="currentColor"
-									viewBox="0 0 15 15"
-								>
-									<path d="M12.5 4a.5.5 0 0 0-1 0v3.248L5.233 3.612C4.693 3.3 4 3.678 4 4.308v7.384c0 .63.692 1.01 1.233.697L11.5 8.753V12a.5.5 0 0 0 1 0z" />
-								</svg>
-								STEP
-							</button>
-							<div className="flex items-center">
-								<input
-									type="checkbox"
-									id="passZeros"
-									name="passZeros"
-									checked={togglePassZeros}
-									onChange={() => setTogglePassZeros(!togglePassZeros)}
-								/>
-								<div className="relative group">
-									<h1 className="text-white text-lg mb-4 cursor-pointer">?</h1>
-									<span className="absolute left-6 bottom-0 hidden group-hover:block bg-gray-700 text-white text-sm rounded-md px-2 py-1 whitespace-no-wrap">
-										Pass all zero opCodes on STEP
-									</span>
-								</div>
-								{togglePassZerosAlertVisible && (
-									<div className=" p-20 absolute sm:hidden left-12 bottom-64 bg-gray-700 text-white text-lg rounded-md px-2 py-1 whitespace-no-wrap">
-										{togglePassZeros
-											? "Pass all zero opCodes on STEP"
-											: "Do not pass zero opCodes on STEP"}
-									</div>
-								)}
-							</div>
-							<button
-								onClick={async () => {
-									try {
-										const db = getDb();
-
-										if (docId === "default") {
-											docId =
-												Math.random().toString(36).substring(2, 15) +
-												Math.random().toString(36).substring(2, 15);
-										}
-
-										await setDoc(
-											doc(db, "editorContents", docId),
-											{
-												code: editorContent,
-												createdAt: new Date(),
-												oldVersions: arrayUnion({
-													code: editorContent,
-													createdAt: new Date(),
-												}),
-											},
-											{ merge: true }
-										);
-
-										console.log("Document written with ID: ", docId);
-										setShareUrl(window.location.origin + "/" + docId);
-										// and update the URL
-										window.history.pushState({}, "", docId);
-									} catch (error) {
-										console.error("Error writing document: ", error);
-									}
-								}}
-								className="bg-orange-500 lg:font-light items-center text-lg p-2 text-white rounded-md flex gap-2"
-							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									width="24"
-									height="24"
-									fill="currentColor"
-									viewBox="0 0 24 24"
-								>
-									<path d="M19 21H5c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h10l6 6v10c0 1.1-.9 2-2 2zm-7-3c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm4-10V4H5v14h14v-7h-5V8z" />
-								</svg>
-								SAVE
-							</button>
-							{/* show share url if exists */}
-							{shareUrl && (
-								<div className="flex flex-col items-start gap-2 mt-4">
+							<div className="sm:flex gap-4">
+								<div className="flex gap-4">
 									<button
 										onClick={() => {
-											navigator.clipboard.writeText(shareUrl);
-											alert("URL copied to the clipboard");
+											console.log("stop");
+											setBuildSuccess(false);
 										}}
-										className="bg-gray-700 text-white text-lg p-2 rounded-md"
+										className="bg-red-500  lg:font-light items-center  text-lg p-2  text-white  rounded-md flex gap-2 "
 									>
-										Copy URL
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											fill="currentColor"
+											viewBox="0 0 24 24"
+											strokeWidth={1.5}
+											stroke="currentColor"
+											className="size-6"
+										>
+											<path
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												d="M5.25 7.5A2.25 2.25 0 0 1 7.5 5.25h9a2.25 2.25 0 0 1 2.25 2.25v9a2.25 2.25 0 0 1-2.25 2.25h-9a2.25 2.25 0 0 1-2.25-2.25v-9Z"
+											/>
+										</svg>
+										STOP
 									</button>
+									{!runClicked ? (
+										<button
+											onClick={() => {
+												console.log("button run press");
+												if (buildSuccess) setRunClicked(true);
+											}}
+											className="bg-green-500  lg:font-light items-center  text-lg p-2  text-white  rounded-md flex gap-2  "
+										>
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												fill="currentColor"
+												viewBox="0 0 24 24"
+												strokeWidth={1.5}
+												stroke="currentColor"
+												className="size-6"
+											>
+												<path
+													strokeLinecap="round"
+													strokeLinejoin="round"
+													d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"
+												/>
+											</svg>
+											RUN
+										</button>
+									) : (
+										<button className="bg-green-700 w-24 h-10  lg:font-light items-center justify-center text-xl p-2   text-black  rounded-md flex gap-2   animate-pulse">
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												width="16"
+												height="16"
+												fill="currentColor"
+												viewBox="0 0 16 16"
+											>
+												<path d="M2 14.5a.5.5 0 0 0 .5.5h11a.5.5 0 1 0 0-1h-1v-1a4.5 4.5 0 0 0-2.557-4.06c-.29-.139-.443-.377-.443-.59v-.7c0-.213.154-.451.443-.59A4.5 4.5 0 0 0 12.5 3V2h1a.5.5 0 0 0 0-1h-11a.5.5 0 0 0 0 1h1v1a4.5 4.5 0 0 0 2.557 4.06c.29.139.443.377.443.59v.7c0 .213-.154.451-.443.59A4.5 4.5 0 0 0 3.5 13v1h-1a.5.5 0 0 0-.5.5m2.5-.5v-1a3.5 3.5 0 0 1 1.989-3.158c.533-.256 1.011-.79 1.011-1.491v-.702s.18.101.5.101.5-.1.5-.1v.7c0 .701.478 1.236 1.011 1.492A3.5 3.5 0 0 1 11.5 13v1z" />
+											</svg>
+										</button>
+									)}
+									<button
+										onClick={() => {
+											if (buildSuccess) setStepClicked(!stepClicked);
+										}}
+										className="bg-blue-500  lg:font-light items-center  text-lg p-2  text-white  rounded-md flex gap-2  "
+									>
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											width="24"
+											height="24"
+											fill="currentColor"
+											viewBox="0 0 15 15"
+										>
+											<path d="M12.5 4a.5.5 0 0 0-1 0v3.248L5.233 3.612C4.693 3.3 4 3.678 4 4.308v7.384c0 .63.692 1.01 1.233.697L11.5 8.753V12a.5.5 0 0 0 1 0z" />
+										</svg>
+										STEP
+									</button>
+									<div className="flex items-center">
+										<input
+											type="checkbox"
+											id="passZeros"
+											name="passZeros"
+											checked={togglePassZeros}
+											onChange={() => setTogglePassZeros(!togglePassZeros)}
+										/>
+										<div className="relative group">
+											<h1 className="text-white text-lg mb-4 cursor-pointer">
+												?
+											</h1>
+											<span className="absolute left-6 bottom-0 hidden group-hover:block bg-gray-700 text-white text-sm rounded-md px-2 py-1 whitespace-no-wrap">
+												Pass all zero opCodes on STEP
+											</span>
+										</div>
+										{togglePassZerosAlertVisible && (
+											<div className=" p-20 absolute sm:hidden left-12 bottom-64 bg-gray-700 text-white text-lg rounded-md px-2 py-1 whitespace-no-wrap">
+												{togglePassZeros
+													? "Pass all zero opCodes on STEP"
+													: "Do not pass zero opCodes on STEP"}
+											</div>
+										)}
+									</div>
 								</div>
-							)}
+								<div className="flex gap-4 mt-4 sm:mt-0">
+									<button
+										onClick={async () => {
+											try {
+												const db = getDb();
+
+												if (docId === "default") {
+													docId =
+														Math.random().toString(36).substring(2, 15) +
+														Math.random().toString(36).substring(2, 15);
+												}
+
+												await setDoc(
+													doc(db, "editorContents", docId),
+													{
+														code: editorContent,
+														createdAt: new Date(),
+														oldVersions: arrayUnion({
+															code: editorContent,
+															createdAt: new Date(),
+														}),
+													},
+													{ merge: true }
+												);
+
+												console.log("Document written with ID: ", docId);
+												setShareUrl(window.location.origin + "/" + docId);
+												// and update the URL
+												window.history.pushState({}, "", docId);
+											} catch (error) {
+												console.error("Error writing document: ", error);
+											}
+										}}
+										className="bg-orange-500 lg:font-light items-center text-lg p-2 text-white rounded-md flex gap-2"
+									>
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											width="24"
+											height="24"
+											fill="currentColor"
+											viewBox="0 0 24 24"
+										>
+											<path d="M19 21H5c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h10l6 6v10c0 1.1-.9 2-2 2zm-7-3c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm4-10V4H5v14h14v-7h-5V8z" />
+										</svg>
+										SAVE
+									</button>
+									{/* show share url if exists */}
+									{shareUrl && (
+										<div className="flex flex-col items-start gap-2 mt-4">
+											<button
+												onClick={() => {
+													navigator.clipboard.writeText(shareUrl);
+													alert("URL copied to the clipboard");
+												}}
+												className="bg-gray-700 text-white text-lg p-2 rounded-md"
+											>
+												Copy URL
+											</button>
+										</div>
+									)}
+								</div>
+							</div>
 						</>
 					)}
 				</div>
