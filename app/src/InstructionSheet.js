@@ -8006,7 +8006,7 @@ function staaEex(pC, accA, accB, memory, stackP, xReg, statFlags) {
 	};
 
 	return {
-		pC: pC + 2,
+		pC: pC + 3,
 		accA,
 		accB,
 		memory,
@@ -8133,7 +8133,7 @@ function stabEex(pC, accA, accB, memory, stackP, xReg, statFlags) {
 	};
 
 	return {
-		pC: pC + 2,
+		pC: pC + 3,
 		accA,
 		accB,
 		memory,
@@ -8228,7 +8228,7 @@ function tstEex(pC, accA, accB, memory, stackP, xReg, statFlags) {
 	};
 
 	return {
-		pC: pC + 2,
+		pC: pC + 3,
 		accA,
 		accB,
 		memory,
@@ -8359,7 +8359,7 @@ function stsEex(pC, accA, accB, memory, stackP, xReg, statFlags) {
 	};
 
 	return {
-		pC: pC + 2,
+		pC: pC + 3,
 		accA,
 		accB,
 		memory,
@@ -8490,7 +8490,7 @@ function stxEex(pC, accA, accB, memory, stackP, xReg, statFlags) {
 	};
 
 	return {
-		pC: pC + 2,
+		pC: pC + 3,
 		accA,
 		accB,
 		memory,
