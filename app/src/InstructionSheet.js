@@ -2369,8 +2369,8 @@ instructionSheetScript.set("rts", rts);
 // Assembler
 function rtsE(pC, accA, accB, memory, stackPointer, xRegister, statusFlags) {
 	// Restore the PC from the stack
-	const newPCMs = memory[++stackPointer];
 	const newPCLs = memory[++stackPointer];
+	const newPCMs = memory[++stackPointer];
 	const newPC = (newPCMs << 8) | newPCLs;
 
 	// Return the restored state
@@ -2379,9 +2379,9 @@ function rtsE(pC, accA, accB, memory, stackPointer, xRegister, statusFlags) {
 		accA,
 		accB,
 		memory,
-		stackPointer,
-		xRegister,
-		statusFlags,
+		stackP: stackPointer,
+		xReg: xRegister,
+		statFlags: statusFlags,
 	};
 }
 assemblyCompiler.set(0x39, rtsE);
@@ -2434,9 +2434,9 @@ function swiE(pC, accA, accB, memory, stackPointer, xRegister, statusFlags) {
 		accA,
 		accB,
 		memory,
-		stackPointer,
-		xRegister,
-		statusFlags,
+		stackP: stackPointer,
+		xReg: xRegister,
+		statFlags: statusFlags,
 	};
 }
 assemblyCompiler.set(0x3f, swiE);
@@ -2495,9 +2495,9 @@ function waiE(pC, accA, accB, memory, stackPointer, xRegister, statusFlags) {
 		accA,
 		accB,
 		memory,
-		stackPointer,
-		xRegister,
-		statusFlags,
+		stackP: stackPointer,
+		xReg: xRegister,
+		statFlags: statusFlags,
 	};
 }
 assemblyCompiler.set(0x3e, waiE);
@@ -8644,6 +8644,7 @@ assemblyCompiler.set(0xad, jsrEin);
 
 function jsrEex(pC, accA, accB, memory, stackP, xReg, statFlags) {
 	const address = (memory[pC + 1] << 8) | memory[pC + 2];
+	console.log("adress : " + address, memory[pC + 1] << 8, memory[pC + 2]);
 	const returnAddress = pC + 3;
 
 	memory[stackP] = returnAddress >> 8;
